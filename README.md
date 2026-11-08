@@ -4,6 +4,8 @@
 
 # Headless Motion
 
+![Headless Motion hero](assets/brand/hero.png)
+
 Motion graphics from JSON scenes. No timeline UI, no manual keyframes.
 
 An agent writes a scene, the engine renders the video, and a checker scores every frame against a reference. The goal is animation on par with top YouTube animation channels, produced end to end without a human opening an editor.
@@ -11,6 +13,18 @@ An agent writes a scene, the engine renders the video, and a checker scores ever
 ## Why headless
 
 After Effects is built for a human hand on a timeline. An agent cannot scrub, drag keyframes, or judge a frame by eye. Headless Motion turns the whole job into files an agent can write and check: a scene is JSON, a render is one command, and the verdict is numbers, not an opinion.
+
+## How it works
+
+![Render pipeline](assets/brand/architecture.svg)
+
+## What it renders
+
+These are actual frames from real renders, not mockups.
+
+<img src="assets/brand/frame-map.png" width="49%" alt="Actual rendered map frame"> <img src="assets/brand/frame-title.png" width="49%" alt="Actual rendered title frame">
+
+Left: map-sample, final profile, 5 seconds in. Right: scene-min, final profile, 5 seconds in.
 
 ## Quickstart
 
@@ -67,6 +81,8 @@ Full format docs live in `prompts/01-scene-format.md`. The map module (`src/map/
 ## Verification
 
 Every render can be scored against a reference, frame by frame. The checker (`src/checker/`) reports SSIM, PSNR, LPIPS, flat colour difference in CIEDE2000, and a layer layout check: element positions as ratios, distances to frame borders, zoom as a ratio curve, and gaps between elements per layer.
+
+![Write, render, check, fix loop](assets/brand/loop.svg)
 
 The frozen pass bar for the four test segments is:
 

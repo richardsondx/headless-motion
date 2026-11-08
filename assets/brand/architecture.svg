@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-label="Headless Motion render pipeline diagram">
+  <rect x="0" y="0" width="1200" height="420" rx="16" fill="#0F1E1C"/>
+  <text x="40" y="52" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#F4F1EA">How a scene becomes a video</text>
+  <!-- boxes -->
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="40" y="110" width="180" height="110" rx="12" fill="#E4572E"/>
+    <text x="130" y="155" text-anchor="middle" font-size="20" font-weight="bold" fill="#FFFFFF">Scene JSON</text>
+    <text x="130" y="186" text-anchor="middle" font-size="15" fill="#FFFFFF">nodes, timeline,</text>
+    <text x="130" y="206" text-anchor="middle" font-size="15" fill="#FFFFFF">palette, fonts</text>
+    <rect x="270" y="110" width="180" height="110" rx="12" fill="#1E3A35" stroke="#2A9D8F" stroke-width="2"/>
+    <text x="360" y="155" text-anchor="middle" font-size="20" font-weight="bold" fill="#F4F1EA">Compile</text>
+    <text x="360" y="186" text-anchor="middle" font-size="15" fill="#B8C4BE">validate, patch,</text>
+    <text x="360" y="206" text-anchor="middle" font-size="15" fill="#B8C4BE">build the page</text>
+    <rect x="500" y="110" width="180" height="110" rx="12" fill="#1E3A35" stroke="#2A9D8F" stroke-width="2"/>
+    <text x="590" y="155" text-anchor="middle" font-size="20" font-weight="bold" fill="#F4F1EA">Browser runtime</text>
+    <text x="590" y="186" text-anchor="middle" font-size="15" fill="#B8C4BE">GSAP timeline,</text>
+    <text x="590" y="206" text-anchor="middle" font-size="15" fill="#B8C4BE">one seek per frame</text>
+    <rect x="730" y="110" width="180" height="110" rx="12" fill="#1E3A35" stroke="#2A9D8F" stroke-width="2"/>
+    <text x="820" y="155" text-anchor="middle" font-size="20" font-weight="bold" fill="#F4F1EA">Frame capture</text>
+    <text x="820" y="186" text-anchor="middle" font-size="15" fill="#B8C4BE">PNG per frame,</text>
+    <text x="820" y="206" text-anchor="middle" font-size="15" fill="#B8C4BE">parallel workers</text>
+    <rect x="960" y="110" width="200" height="110" rx="12" fill="#E8A33D"/>
+    <text x="1060" y="155" text-anchor="middle" font-size="20" font-weight="bold" fill="#141414">FFmpeg encode</text>
+    <text x="1060" y="186" text-anchor="middle" font-size="15" fill="#141414">libx264, CRF 14,</text>
+    <text x="1060" y="206" text-anchor="middle" font-size="15" fill="#141414">MP4 out</text>
+    <!-- arrows -->
+    <g fill="#2A9D8F">
+      <polygon points="220,165 248,155 248,175"/>
+      <polygon points="450,165 478,155 478,175"/>
+      <polygon points="680,165 708,155 708,175"/>
+      <polygon points="910,165 938,155 938,175"/>
+    </g>
+    <!-- checker row -->
+    <rect x="40" y="280" width="560" height="90" rx="12" fill="#1E3A35" stroke="#E4572E" stroke-width="2"/>
+    <text x="70" y="322" font-size="20" font-weight="bold" fill="#F4F1EA">Checker</text>
+    <text x="70" y="350" font-size="15" fill="#B8C4BE">SSIM · PSNR · LPIPS · CIEDE2000 · layer layout, per frame</text>
+    <rect x="640" y="280" width="520" height="90" rx="12" fill="#1E3A35" stroke="#E4572E" stroke-width="2"/>
+    <text x="670" y="322" font-size="20" font-weight="bold" fill="#F4F1EA">Reference video</text>
+    <text x="670" y="350" font-size="15" fill="#B8C4BE">the frame the render has to match</text>
+    <g fill="#E4572E">
+      <polygon points="600,325 628,315 628,335"/>
+    </g>
+    <path d="M 320 370 L 320 400 L 130 400 L 130 232" fill="none" stroke="#E4572E" stroke-width="2" stroke-dasharray="6 5"/>
+    <polygon points="130,232 124,246 136,246" fill="#E4572E"/>
+    <text x="340" y="395" font-size="15" fill="#E4572E">scores feed back into the next scene edit</text>
+  </g>
+</svg>
