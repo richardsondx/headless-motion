@@ -1,0 +1,20 @@
+{
+  "$id": "hme.text/1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "duration": {"type": "number"},
+    "ease": {"type": "string"},
+    "from": {
+      "additionalProperties": false,
+      "properties": {"opacity": {"type": "number"}, "scale": {"type": "number"}, "y": {"type": "number"}},
+      "type": "object"
+    },
+    "mode": {"enum": ["default", "stamp"], "type": "string"},
+    "split": {"enum": ["char", "word", "line"], "type": "string"},
+    "stagger": {"type": "number"},
+    "start": {"type": "number"}
+  },
+  "required": ["start", "duration"],
+  "type": "object"
+}

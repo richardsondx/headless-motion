@@ -1,0 +1,84 @@
+{
+  "id": "seg3",
+  "ref_start_frame": 0,
+  "fps": 3,
+  "flat_regions": [
+    {
+      "id": "navy-box",
+      "rect": [
+        200,
+        200,
+        400,
+        200
+      ],
+      "frames": [
+        0,
+        15,
+        29
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "square-move",
+      "rect": [
+        780,
+        480,
+        280,
+        160
+      ],
+      "window": [
+        5,
+        25
+      ]
+    }
+  ],
+  "labels": [
+    {
+      "id": "glue",
+      "rect": [
+        180,
+        630,
+        340,
+        140
+      ],
+      "frames": [
+        0,
+        15,
+        29
+      ],
+      "text": "GLUE"
+    },
+    {
+      "id": "g",
+      "rect": [
+        880,
+        630,
+        120,
+        140
+      ],
+      "frames": [
+        0,
+        15,
+        29
+      ],
+      "text": "G"
+    }
+  ],
+  "targets": [
+    {
+      "id": "glue-target",
+      "rect": [
+        180,
+        630,
+        340,
+        140
+      ],
+      "frames": [
+        0,
+        15,
+        29
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "draft": {
+    "crf": 20,
+    "output": {
+      "height": 1080,
+      "width": 1920
+    },
+    "preset": "fast",
+    "supersample": 1
+  },
+  "final": {
+    "crf": 14,
+    "output": {
+      "height": 1080,
+      "width": 1920
+    },
+    "preset": "medium",
+    "supersample": 1.5
+  },
+  "final-max": {
+    "crf": 14,
+    "output": {
+      "height": 1080,
+      "width": 1920
+    },
+    "preset": "slow",
+    "supersample": 2
+  },
+  "previs": {
+    "crf": 28,
+    "output": {
+      "height": 480,
+      "width": 854
+    },
+    "preset": "veryfast",
+    "supersample": 1
+  }
+}

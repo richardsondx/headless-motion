@@ -1,0 +1,67 @@
+{
+  "schema": "hme.scene/1.0",
+  "meta": {
+    "id": "text-bad",
+    "fps": 24,
+    "width": 1920,
+    "height": 1080,
+    "duration": 240,
+    "seed": 1,
+    "register": "light"
+  },
+  "fonts": [
+    {
+      "family": "FixtureSans",
+      "weight": 700,
+      "src": "fonts/LiberationSans-Bold.ttf"
+    }
+  ],
+  "palette": {
+    "ground": "#f4f1ea",
+    "ink": "#14213d",
+    "accent": "#e63946"
+  },
+  "nodes": [
+    {
+      "id": "pill",
+      "type": "shape",
+      "parent": null,
+      "z": 1,
+      "box": {
+        "x": 160,
+        "y": 120,
+        "w": 1200,
+        "h": 180
+      },
+      "props": {
+        "fill": "#14213d",
+        "kind": "rect",
+        "radius": 24
+      }
+    },
+    {
+      "id": "t",
+      "type": "text",
+      "parent": null,
+      "z": 2,
+      "box": {
+        "x": 200,
+        "y": 140,
+        "w": 1120,
+        "h": 140
+      },
+      "props": {
+        "text": "COUNT",
+        "font": {
+          "family": "FixtureSans",
+          "weight": 700,
+          "size": 24,
+          "fill": "#ffffff"
+        },
+        "ground": "pill"
+      }
+    }
+  ],
+  "timeline": [],
+  "events": []
+}

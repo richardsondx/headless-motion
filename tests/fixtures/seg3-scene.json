@@ -1,0 +1,3541 @@
+{
+  "schema": "hme.scene/1.0",
+  "meta": {
+    "id": "seg3-scene",
+    "fps": 24,
+    "width": 1920,
+    "height": 1080,
+    "duration": 240,
+    "seed": 3,
+    "register": "light",
+    "notes": "Segment 3: TED-Ed glue vs tape verdict beat (HHuTrcXNxOk, 03:05-03:15). This is a code-drawn reconstruction of the beat's composition and timing from flat vector shapes. It is NOT a pixel copy of the hand-drawn original, and nothing here should be read as pixel-identical. Gaps: (1) meta.fps is 24 because the scene schema types fps as an integer and the renderer probes r_frame_rate as fps/1; the reference is 23.976 fps, so after 240 frames the two timelines differ by about 0.24 frame. (2) The 240-frame reference clip (refs/seg3-glue-tape-240f.webm) shows a crowd scene for roughly the first 100 frames and then the two flexing characters on a blue platform; it contains no anvil, no bowling balls and no verdict label, so those elements come from the brief and the lesson text, not from reference frames, and the clip start does not yet align with 03:05. (3) The glue bottle and tape roll are original flat-vector characters with their own proportions and faces, not copies of the original drawings; there is no hand-drawn character library in the engine. (4) The background wash is three flat ellipses, not the textured wash of the original. (5) Palette entries with a source number were sampled from storyboard frame f08 (about reference frame 168); the others are authored. (6) Label font is the fixture Liberation Sans Bold, not the original lettering. Beat timing is authored: platform f0-12, characters f4-18, beam f18-34, glue blob f40-52, anvil drops f52-72, tape strip f40-52, three balls pop at f60/72/84, fists pulse f100-124, verdict pill f132-140, verdict words from f140 (3 frame stagger), still from f185 to f239."
+  },
+  "fonts": [
+    {
+      "family": "FixtureSans",
+      "weight": 700,
+      "src": "fonts/LiberationSans-Bold.ttf"
+    }
+  ],
+  "palette": {
+    "ground": {
+      "color": "#c5d1e3",
+      "source": 168
+    },
+    "washDark": {
+      "color": "#a5b7d3",
+      "source": 168
+    },
+    "washLight": "#d9e2f0",
+    "deck": {
+      "color": "#1d4f98",
+      "source": 168
+    },
+    "deckFront": {
+      "color": "#355a9d",
+      "source": 168
+    },
+    "glueBody": {
+      "color": "#e2f0fd",
+      "source": 168
+    },
+    "tapeBody": {
+      "color": "#f3e2c7",
+      "source": 168
+    },
+    "ink": "#14213d",
+    "white": "#ffffff",
+    "orange": "#e07a2e",
+    "sweat": "#8fc4f0",
+    "beam": "#3a4a63",
+    "steel": "#5b6577",
+    "tapeGrey": "#8d949e",
+    "tapeDark": "#6b727c",
+    "ball": "#2b2f66",
+    "ballHole": "#0f1330"
+  },
+  "nodes": [
+    {
+      "id": "wash-a",
+      "type": "shape",
+      "parent": null,
+      "z": 10,
+      "box": {
+        "x": -200,
+        "y": 60,
+        "w": 1200,
+        "h": 160
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "washDark"
+      },
+      "transform": {
+        "opacity": 0.6
+      }
+    },
+    {
+      "id": "wash-b",
+      "type": "shape",
+      "parent": null,
+      "z": 10,
+      "box": {
+        "x": 900,
+        "y": 240,
+        "w": 1300,
+        "h": 140
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "washLight"
+      },
+      "transform": {
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "wash-c",
+      "type": "shape",
+      "parent": null,
+      "z": 10,
+      "box": {
+        "x": -100,
+        "y": 470,
+        "w": 1000,
+        "h": 120
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "washDark"
+      },
+      "transform": {
+        "opacity": 0.5
+      }
+    },
+    {
+      "id": "deck-top",
+      "type": "shape",
+      "parent": null,
+      "z": 30,
+      "box": {
+        "x": 140,
+        "y": 740,
+        "w": 1640,
+        "h": 124
+      },
+      "props": {
+        "kind": "path",
+        "d": "M200,0 L1440,0 L1640,124 L0,124 Z",
+        "fill": "deck",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "deck-front",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 140,
+        "y": 864,
+        "w": 1640,
+        "h": 216
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "deckFront",
+        "radius": 0,
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-leg-l",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 658,
+        "y": 696,
+        "w": 22,
+        "h": 56
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "glueBody",
+        "radius": 10,
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-leg-r",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 760,
+        "y": 696,
+        "w": 22,
+        "h": 56
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "glueBody",
+        "radius": 10,
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-foot-l",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 638,
+        "y": 750,
+        "w": 60,
+        "h": 26
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "glueBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-foot-r",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 742,
+        "y": 750,
+        "w": 60,
+        "h": 26
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "glueBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-arm-l-o",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 505,
+        "y": 400,
+        "w": 130,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M110,120 L40,160 L30,52",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 26
+        }
+      }
+    },
+    {
+      "id": "glue-arm-l-i",
+      "type": "shape",
+      "parent": null,
+      "z": 101,
+      "box": {
+        "x": 505,
+        "y": 400,
+        "w": 130,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M110,120 L40,160 L30,52",
+        "fill": "none",
+        "stroke": {
+          "color": "glueBody",
+          "width": 14
+        }
+      }
+    },
+    {
+      "id": "glue-arm-r-o",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 805,
+        "y": 400,
+        "w": 130,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M20,120 L90,160 L100,52",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 26
+        }
+      }
+    },
+    {
+      "id": "glue-arm-r-i",
+      "type": "shape",
+      "parent": null,
+      "z": 101,
+      "box": {
+        "x": 805,
+        "y": 400,
+        "w": 130,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M20,120 L90,160 L100,52",
+        "fill": "none",
+        "stroke": {
+          "color": "glueBody",
+          "width": 14
+        }
+      }
+    },
+    {
+      "id": "glue-body",
+      "type": "shape",
+      "parent": null,
+      "z": 110,
+      "box": {
+        "x": 615,
+        "y": 300,
+        "w": 210,
+        "h": 400
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "glueBody",
+        "radius": 46,
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "glue-cap",
+      "type": "shape",
+      "parent": null,
+      "z": 110,
+      "box": {
+        "x": 668,
+        "y": 258,
+        "w": 104,
+        "h": 48
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "orange",
+        "radius": 10,
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "glue-nozzle",
+      "type": "shape",
+      "parent": null,
+      "z": 110,
+      "box": {
+        "x": 694,
+        "y": 198,
+        "w": 52,
+        "h": 64
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,64 L26,2 L50,64 Z",
+        "fill": "orange",
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "glue-fist-l",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 512,
+        "y": 429,
+        "w": 46,
+        "h": 46
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "glueBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-fist-r",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 882,
+        "y": 429,
+        "w": 46,
+        "h": 46
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "glueBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-eye-l",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 658,
+        "y": 430,
+        "w": 34,
+        "h": 40
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "glue-eye-r",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 748,
+        "y": 430,
+        "w": 34,
+        "h": 40
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "glue-pupil-l",
+      "type": "shape",
+      "parent": null,
+      "z": 130,
+      "box": {
+        "x": 668,
+        "y": 448,
+        "w": 12,
+        "h": 12
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ink"
+      }
+    },
+    {
+      "id": "glue-pupil-r",
+      "type": "shape",
+      "parent": null,
+      "z": 130,
+      "box": {
+        "x": 758,
+        "y": 448,
+        "w": 12,
+        "h": 12
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ink"
+      }
+    },
+    {
+      "id": "glue-brow-l",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 650,
+        "y": 400,
+        "w": 50,
+        "h": 16
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,2 L48,14",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-brow-r",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 740,
+        "y": 400,
+        "w": 50,
+        "h": 16
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,14 L48,2",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-mouth",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 686,
+        "y": 520,
+        "w": 68,
+        "h": 24
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,12 L66,12 M22,4 L22,20 M44,4 L44,20",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "glue-sweat",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 780,
+        "y": 352,
+        "w": 18,
+        "h": 28
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "sweat",
+        "stroke": {
+          "color": "ink",
+          "width": 3
+        }
+      },
+      "visible": {
+        "in": 96,
+        "out": 240
+      }
+    },
+    {
+      "id": "tape-leg-l",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 1150,
+        "y": 700,
+        "w": 22,
+        "h": 58
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "tapeBody",
+        "radius": 10,
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-leg-r",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 1268,
+        "y": 700,
+        "w": 22,
+        "h": 58
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "tapeBody",
+        "radius": 10,
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-foot-l",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 1130,
+        "y": 756,
+        "w": 60,
+        "h": 26
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "tapeBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-foot-r",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 1248,
+        "y": 756,
+        "w": 60,
+        "h": 26
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "tapeBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-arm-l-o",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 930,
+        "y": 470,
+        "w": 160,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M150,100 L60,140 L50,45",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 26
+        }
+      }
+    },
+    {
+      "id": "tape-arm-l-i",
+      "type": "shape",
+      "parent": null,
+      "z": 101,
+      "box": {
+        "x": 930,
+        "y": 470,
+        "w": 160,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M150,100 L60,140 L50,45",
+        "fill": "none",
+        "stroke": {
+          "color": "tapeBody",
+          "width": 14
+        }
+      }
+    },
+    {
+      "id": "tape-arm-r-o",
+      "type": "shape",
+      "parent": null,
+      "z": 100,
+      "box": {
+        "x": 1350,
+        "y": 470,
+        "w": 160,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M10,100 L100,140 L110,45",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 26
+        }
+      }
+    },
+    {
+      "id": "tape-arm-r-i",
+      "type": "shape",
+      "parent": null,
+      "z": 101,
+      "box": {
+        "x": 1350,
+        "y": 470,
+        "w": 160,
+        "h": 200
+      },
+      "props": {
+        "kind": "path",
+        "d": "M10,100 L100,140 L110,45",
+        "fill": "none",
+        "stroke": {
+          "color": "tapeBody",
+          "width": 14
+        }
+      }
+    },
+    {
+      "id": "tape-roll",
+      "type": "shape",
+      "parent": null,
+      "z": 110,
+      "box": {
+        "x": 1080,
+        "y": 395,
+        "w": 280,
+        "h": 320
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "tapeBody",
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "tape-core",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 1105,
+        "y": 440,
+        "w": 140,
+        "h": 230
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "orange",
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "tape-hole",
+      "type": "shape",
+      "parent": null,
+      "z": 130,
+      "box": {
+        "x": 1115,
+        "y": 450,
+        "w": 120,
+        "h": 210
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ground",
+        "stroke": {
+          "color": "ink",
+          "width": 6
+        }
+      }
+    },
+    {
+      "id": "tape-fist-l",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 957,
+        "y": 492,
+        "w": 46,
+        "h": 46
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "tapeBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-fist-r",
+      "type": "shape",
+      "parent": null,
+      "z": 120,
+      "box": {
+        "x": 1437,
+        "y": 492,
+        "w": 46,
+        "h": 46
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "tapeBody",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-eye-l",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1248,
+        "y": 490,
+        "w": 30,
+        "h": 36
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "tape-eye-r",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1300,
+        "y": 490,
+        "w": 30,
+        "h": 36
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "tape-pupil-l",
+      "type": "shape",
+      "parent": null,
+      "z": 150,
+      "box": {
+        "x": 1256,
+        "y": 506,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ink"
+      }
+    },
+    {
+      "id": "tape-pupil-r",
+      "type": "shape",
+      "parent": null,
+      "z": 150,
+      "box": {
+        "x": 1308,
+        "y": 506,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ink"
+      }
+    },
+    {
+      "id": "tape-brow-l",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1242,
+        "y": 462,
+        "w": 44,
+        "h": 16
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,2 L42,14",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-brow-r",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1296,
+        "y": 462,
+        "w": 44,
+        "h": 16
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,14 L42,2",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "tape-mouth",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1250,
+        "y": 570,
+        "w": 80,
+        "h": 24
+      },
+      "props": {
+        "kind": "path",
+        "d": "M2,12 L78,12 M26,4 L26,20 M52,4 L52,20",
+        "fill": "none",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "tape-sweat",
+      "type": "shape",
+      "parent": null,
+      "z": 140,
+      "box": {
+        "x": 1332,
+        "y": 430,
+        "w": 18,
+        "h": 28
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "sweat",
+        "stroke": {
+          "color": "ink",
+          "width": 3
+        }
+      },
+      "visible": {
+        "in": 96,
+        "out": 240
+      }
+    },
+    {
+      "id": "beam",
+      "type": "shape",
+      "parent": null,
+      "z": 70,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 52
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "beam",
+        "radius": 0
+      }
+    },
+    {
+      "id": "beam-edge",
+      "type": "shape",
+      "parent": null,
+      "z": 70,
+      "box": {
+        "x": 0,
+        "y": 50,
+        "w": 1920,
+        "h": 6
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "ink",
+        "radius": 0
+      }
+    },
+    {
+      "id": "anvil",
+      "type": "shape",
+      "parent": null,
+      "z": 50,
+      "box": {
+        "x": 635,
+        "y": 72,
+        "w": 170,
+        "h": 112
+      },
+      "props": {
+        "kind": "path",
+        "d": "M0,10 L140,10 Q170,12 170,34 Q130,42 104,50 L104,76 Q132,80 140,112 L30,112 Q38,80 66,76 L66,50 Q36,42 8,36 Q0,26 0,10 Z",
+        "fill": "steel",
+        "stroke": {
+          "color": "ink",
+          "width": 5
+        }
+      }
+    },
+    {
+      "id": "glue-blob",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 686,
+        "y": 44,
+        "w": 68,
+        "h": 44
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "orange",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "tape-strip",
+      "type": "shape",
+      "parent": null,
+      "z": 50,
+      "box": {
+        "x": 1184,
+        "y": 44,
+        "w": 72,
+        "h": 58
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "tapeGrey",
+        "radius": 0,
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "tape-strip-band",
+      "type": "shape",
+      "parent": null,
+      "z": 60,
+      "box": {
+        "x": 1184,
+        "y": 62,
+        "w": 72,
+        "h": 8
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "tapeDark",
+        "radius": 0
+      }
+    },
+    {
+      "id": "link-0",
+      "type": "shape",
+      "parent": null,
+      "z": 60,
+      "box": {
+        "x": 1215,
+        "y": 98,
+        "w": 10,
+        "h": 20
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "steel",
+        "radius": 4,
+        "stroke": {
+          "color": "ink",
+          "width": 3
+        }
+      }
+    },
+    {
+      "id": "ball-0",
+      "type": "shape",
+      "parent": null,
+      "z": 70,
+      "box": {
+        "x": 1180,
+        "y": 112,
+        "w": 80,
+        "h": 80
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ball",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "ball-0-h1",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1202,
+        "y": 128,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-0-h2",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1220,
+        "y": 128,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-0-h3",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1211,
+        "y": 144,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-0-hi",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1192,
+        "y": 120,
+        "w": 22,
+        "h": 12
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white"
+      },
+      "transform": {
+        "opacity": 0.45
+      }
+    },
+    {
+      "id": "link-1",
+      "type": "shape",
+      "parent": null,
+      "z": 60,
+      "box": {
+        "x": 1215,
+        "y": 186,
+        "w": 10,
+        "h": 24
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "steel",
+        "radius": 4,
+        "stroke": {
+          "color": "ink",
+          "width": 3
+        }
+      }
+    },
+    {
+      "id": "ball-1",
+      "type": "shape",
+      "parent": null,
+      "z": 70,
+      "box": {
+        "x": 1180,
+        "y": 204,
+        "w": 80,
+        "h": 80
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ball",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "ball-1-h1",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1202,
+        "y": 220,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-1-h2",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1220,
+        "y": 220,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-1-h3",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1211,
+        "y": 236,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-1-hi",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1192,
+        "y": 212,
+        "w": 22,
+        "h": 12
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white"
+      },
+      "transform": {
+        "opacity": 0.45
+      }
+    },
+    {
+      "id": "link-2",
+      "type": "shape",
+      "parent": null,
+      "z": 60,
+      "box": {
+        "x": 1215,
+        "y": 278,
+        "w": 10,
+        "h": 24
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "steel",
+        "radius": 4,
+        "stroke": {
+          "color": "ink",
+          "width": 3
+        }
+      }
+    },
+    {
+      "id": "ball-2",
+      "type": "shape",
+      "parent": null,
+      "z": 70,
+      "box": {
+        "x": 1180,
+        "y": 296,
+        "w": 80,
+        "h": 80
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ball",
+        "stroke": {
+          "color": "ink",
+          "width": 4
+        }
+      }
+    },
+    {
+      "id": "ball-2-h1",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1202,
+        "y": 312,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-2-h2",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1220,
+        "y": 312,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-2-h3",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1211,
+        "y": 328,
+        "w": 11,
+        "h": 11
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "ballHole"
+      }
+    },
+    {
+      "id": "ball-2-hi",
+      "type": "shape",
+      "parent": null,
+      "z": 80,
+      "box": {
+        "x": 1192,
+        "y": 304,
+        "w": 22,
+        "h": 12
+      },
+      "props": {
+        "kind": "ellipse",
+        "fill": "white"
+      },
+      "transform": {
+        "opacity": 0.45
+      }
+    },
+    {
+      "id": "verdict-pill",
+      "type": "shape",
+      "parent": null,
+      "z": 300,
+      "box": {
+        "x": 190,
+        "y": 866,
+        "w": 1540,
+        "h": 180
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "ink",
+        "radius": 28
+      }
+    },
+    {
+      "id": "verdict",
+      "type": "text",
+      "parent": null,
+      "z": 310,
+      "box": {
+        "x": 240,
+        "y": 886,
+        "w": 1440,
+        "h": 140
+      },
+      "props": {
+        "text": "Glue is stronger than tape, but no single adhesive works in all cases",
+        "font": {
+          "family": "FixtureSans",
+          "weight": 700,
+          "size": 60,
+          "letterSpacing": 0,
+          "lineHeight": 1.15
+        },
+        "color": "white",
+        "align": "left",
+        "ground": "verdict-pill",
+        "kinetic": {
+          "split": "word",
+          "stagger": 3,
+          "from": {
+            "y": 28,
+            "opacity": 0,
+            "scale": 1
+          },
+          "duration": 12,
+          "ease": "easeOutCubic",
+          "start": 140
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "node": "deck-top",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 0,
+          "v": 0
+        },
+        {
+          "f": 12,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "deck-front",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 0,
+          "v": 0
+        },
+        {
+          "f": 12,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-leg-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-leg-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-foot-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-foot-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-l-o",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-l-i",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-r-o",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-r-i",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-body",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-cap",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-nozzle",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-eye-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-eye-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-pupil-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-pupil-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-brow-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-brow-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-mouth",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-leg-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-leg-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-foot-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-foot-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-l-o",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-l-i",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-r-o",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-r-i",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-roll",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-core",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-hole",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-eye-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-eye-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-pupil-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-pupil-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-brow-l",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-brow-r",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-mouth",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 4,
+          "v": 0
+        },
+        {
+          "f": 18,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-leg-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-leg-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-foot-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-foot-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-l-o",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-l-i",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-r-o",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-arm-r-i",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-body",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-cap",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-nozzle",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-eye-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-eye-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-pupil-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-pupil-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-brow-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-brow-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-mouth",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-leg-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-leg-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-foot-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-foot-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-l-o",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-l-i",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-r-o",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-arm-r-i",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-roll",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-core",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-hole",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-eye-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-eye-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-pupil-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-pupil-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-brow-l",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-brow-r",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-mouth",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 4,
+          "v": 24
+        },
+        {
+          "f": 18,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "beam",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 18,
+          "v": -56
+        },
+        {
+          "f": 34,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "beam-edge",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 18,
+          "v": -56
+        },
+        {
+          "f": 34,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-blob",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 40,
+          "v": 0.3
+        },
+        {
+          "f": 52,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-blob",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 40,
+          "v": 0
+        },
+        {
+          "f": 46,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "anvil",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 52,
+          "v": -190
+        },
+        {
+          "f": 72,
+          "v": 0,
+          "ease": "easeInQuad"
+        },
+        {
+          "f": 78,
+          "v": 10,
+          "ease": "easeOutQuad"
+        },
+        {
+          "f": 90,
+          "v": 0,
+          "ease": "easeInOutQuad"
+        }
+      ]
+    },
+    {
+      "node": "tape-strip",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 40,
+          "v": -110
+        },
+        {
+          "f": 52,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-strip-band",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 40,
+          "v": -110
+        },
+        {
+          "f": 52,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-0",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h1",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h2",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h3",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-hi",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0.4
+        },
+        {
+          "f": 70,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-0",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h1",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h2",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-h3",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-0-hi",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 60,
+          "v": 0
+        },
+        {
+          "f": 65,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-1",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h1",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h2",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h3",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-hi",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0.4
+        },
+        {
+          "f": 82,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-1",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h1",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h2",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-h3",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-1-hi",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 72,
+          "v": 0
+        },
+        {
+          "f": 77,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-2",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h1",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h2",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h3",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-hi",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0.4
+        },
+        {
+          "f": 94,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "link-2",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h1",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h2",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-h3",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "ball-2-hi",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 84,
+          "v": 0
+        },
+        {
+          "f": 89,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-l",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 100,
+          "v": 1
+        },
+        {
+          "f": 112,
+          "v": 1.15,
+          "ease": "easeInOutSine"
+        },
+        {
+          "f": 124,
+          "v": 1,
+          "ease": "easeInOutSine"
+        }
+      ]
+    },
+    {
+      "node": "glue-fist-r",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 100,
+          "v": 1
+        },
+        {
+          "f": 112,
+          "v": 1.15,
+          "ease": "easeInOutSine"
+        },
+        {
+          "f": 124,
+          "v": 1,
+          "ease": "easeInOutSine"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-l",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 100,
+          "v": 1
+        },
+        {
+          "f": 112,
+          "v": 1.15,
+          "ease": "easeInOutSine"
+        },
+        {
+          "f": 124,
+          "v": 1,
+          "ease": "easeInOutSine"
+        }
+      ]
+    },
+    {
+      "node": "tape-fist-r",
+      "prop": "transform.scale",
+      "keys": [
+        {
+          "f": 100,
+          "v": 1
+        },
+        {
+          "f": 112,
+          "v": 1.15,
+          "ease": "easeInOutSine"
+        },
+        {
+          "f": 124,
+          "v": 1,
+          "ease": "easeInOutSine"
+        }
+      ]
+    },
+    {
+      "node": "glue-sweat",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 96,
+          "v": 0
+        },
+        {
+          "f": 102,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "tape-sweat",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 96,
+          "v": 0
+        },
+        {
+          "f": 102,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "verdict-pill",
+      "prop": "transform.opacity",
+      "keys": [
+        {
+          "f": 132,
+          "v": 0
+        },
+        {
+          "f": 140,
+          "v": 1,
+          "ease": "easeOutCubic"
+        }
+      ]
+    },
+    {
+      "node": "verdict-pill",
+      "prop": "transform.y",
+      "keys": [
+        {
+          "f": 132,
+          "v": 40
+        },
+        {
+          "f": 140,
+          "v": 0,
+          "ease": "easeOutCubic"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "loads-set",
+      "f": 96,
+      "note": "anvil and three balls hang, characters strain"
+    },
+    {
+      "id": "verdict",
+      "f": 140,
+      "note": "verdict label starts"
+    }
+  ]
+}

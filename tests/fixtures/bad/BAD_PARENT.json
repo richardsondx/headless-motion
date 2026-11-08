@@ -1,0 +1,100 @@
+{
+  "schema": "hme.scene/1.0",
+  "meta": {
+    "id": "scene-min",
+    "fps": 24,
+    "width": 1920,
+    "height": 1080,
+    "duration": 240,
+    "seed": 1337,
+    "register": "dark",
+    "notes": "Minimum fixture: one text, one shape, one 3-key track."
+  },
+  "fonts": [
+    {
+      "family": "FixtureSans",
+      "weight": 700,
+      "src": "fonts/LiberationSans-Bold.ttf"
+    }
+  ],
+  "palette": {
+    "ground": "#101820",
+    "ink": "#f4f1ea",
+    "accent": {
+      "color": "#e8a33d",
+      "source": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "title",
+      "type": "text",
+      "parent": null,
+      "z": 2,
+      "box": {
+        "x": 160,
+        "y": 120,
+        "w": 1600,
+        "h": 160
+      },
+      "props": {
+        "text": "Headless motion engine",
+        "font": {
+          "family": "FixtureSans",
+          "weight": 700,
+          "size": 96,
+          "letterSpacing": -2,
+          "lineHeight": 1.1
+        },
+        "color": "ink",
+        "align": "left"
+      }
+    },
+    {
+      "id": "bar",
+      "type": "shape",
+      "parent": "nope",
+      "z": 1,
+      "box": {
+        "x": 160,
+        "y": 600,
+        "w": 240,
+        "h": 240
+      },
+      "props": {
+        "kind": "rect",
+        "fill": "accent",
+        "radius": 24
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "node": "bar",
+      "prop": "transform.x",
+      "keys": [
+        {
+          "f": 0,
+          "v": 0
+        },
+        {
+          "f": 120,
+          "v": 1200,
+          "ease": "easeInOutCubic"
+        },
+        {
+          "f": 240,
+          "v": 600,
+          "ease": "easeOutQuint"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "bar-arrives",
+      "f": 120,
+      "note": "bar reaches its far position"
+    }
+  ]
+}

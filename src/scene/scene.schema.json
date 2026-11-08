@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hme.scene/1.0",
+  "title": "Headless Motion Engine scene",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "meta",
+    "fonts",
+    "palette",
+    "nodes",
+    "timeline",
+    "events"
+  ],
+  "properties": {
+    "schema": {
+      "const": "hme.scene/1.0",
+      "x-error-code": "SCHEMA_VERSION"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "width",
+        "height",
+        "duration",
+        "seed",
+        "register"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "fps": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 24
+        },
+        "width": {
+          "const": 1920
+        },
+        "height": {
+          "const": 1080
+        },
+        "duration": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "frames"
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "register": {
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "notes": {
+          "description": "free text, exempt from additionalProperties"
+        }
+      }
+    },
+    "fonts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family",
+          "weight",
+          "src"
+        ],
+        "properties": {
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "src": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!//)",
+            "description": "local file path, relative to the scene file. No URLs."
+          }
+        }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/hex"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "color"
+            ],
+            "properties": {
+              "color": {
+                "$ref": "#/$defs/hex"
+              },
+              "source": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "reference frame number the colour was measured on"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/track"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "f"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "f": {
+            "$ref": "#/$defs/frame"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "colorRef": {
+      "type": "string",
+      "pattern": "^(#[0-9a-fA-F]{6}|[A-Za-z][A-Za-z0-9_-]*)$"
+    },
+    "frame": {
+      "allOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "minimum": 0,
+          "x-error-code": "KEY_RANGE"
+        }
+      ]
+    },
+    "ease": {
+      "x-error-code": "UNKNOWN_EASE",
+      "anyOf": [
+        {
+          "enum": [
+            "linear",
+            "hold",
+            "easeInSine",
+            "easeOutSine",
+            "easeInOutSine",
+            "easeInQuad",
+            "easeOutQuad",
+            "easeInOutQuad",
+            "easeInCubic",
+            "easeOutCubic",
+            "easeInOutCubic",
+            "easeInQuart",
+            "easeOutQuart",
+            "easeInOutQuart",
+            "easeInQuint",
+            "easeOutQuint",
+            "easeInOutQuint",
+            "easeOutBack",
+            "easeInOutBack"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bezier"
+          ],
+          "properties": {
+            "bezier": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node",
+        "prop",
+        "keys"
+      ],
+      "properties": {
+        "node": {
+          "type": "string"
+        },
+        "prop": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$"
+        },
+        "keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "f",
+              "v"
+            ],
+            "properties": {
+              "f": {
+                "$ref": "#/$defs/frame"
+              },
+              "v": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "ease": {
+                "$ref": "#/$defs/ease"
+              }
+            }
+          }
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "parent",
+        "z",
+        "box",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "shape",
+            "image",
+            "map",
+            "chart"
+          ]
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "z": {
+          "type": "integer"
+        },
+        "box": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "w": {
+              "type": "number",
+              "minimum": 0
+            },
+            "h": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "transform": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number",
+              "default": 0
+            },
+            "y": {
+              "type": "number",
+              "default": 0
+            },
+            "scale": {
+              "type": "number",
+              "default": 1
+            },
+            "rotation": {
+              "type": "number",
+              "default": 0,
+              "description": "degrees"
+            },
+            "opacity": {
+              "type": "number",
+              "default": 1
+            }
+          }
+        },
+        "visible": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "in",
+            "out"
+          ],
+          "properties": {
+            "in": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "out": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "exclusive"
+            }
+          }
+        },
+        "props": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "text"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/$defs/textProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "shape"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/$defs/shapeProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "image"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/$defs/imageProps"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "textProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "font",
+        "color"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "font": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "family",
+            "weight",
+            "size"
+          ],
+          "properties": {
+            "family": {
+              "type": "string",
+              "minLength": 1
+            },
+            "weight": {
+              "type": "integer"
+            },
+            "size": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "px"
+            },
+            "letterSpacing": {
+              "type": "number",
+              "description": "px"
+            },
+            "lineHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "unitless multiplier of size"
+            }
+          }
+        },
+        "color": {
+          "$ref": "#/$defs/colorRef"
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        "maxWidth": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "ground": {
+          "type": "string",
+          "description": "id of the pill or bar shape node behind the text"
+        },
+        "kinetic": {
+          "type": "object",
+          "description": "Kinetic animation. Checked strictly against src/text/text.schema.json by validate.mjs checkText."
+        }
+      }
+    },
+    "shapeProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "rect",
+            "ellipse",
+            "polygon",
+            "path",
+            "line"
+          ]
+        },
+        "fill": {
+          "type": "string",
+          "pattern": "^(none|#[0-9a-fA-F]{6}|[A-Za-z][A-Za-z0-9_-]*)$"
+        },
+        "stroke": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "color",
+            "width"
+          ],
+          "properties": {
+            "color": {
+              "$ref": "#/$defs/colorRef"
+            },
+            "width": {
+              "type": "number",
+              "minimum": 0
+            },
+            "casing": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "color",
+                "width"
+              ],
+              "properties": {
+                "color": {
+                  "$ref": "#/$defs/colorRef"
+                },
+                "width": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "extra px on each side of the stroke"
+                }
+              }
+            }
+          }
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0
+        },
+        "d": {
+          "type": "string",
+          "description": "path: SVG path data. polygon: 'x,y x,y ...'. Both in box-local px."
+        }
+      }
+    },
+    "imageProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "src"
+      ],
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fit": {
+          "enum": [
+            "cover",
+            "contain",
+            "none"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "schema": "hme.scene/1.0",
+  "meta": {
+    "id": "map-sample",
+    "fps": 24,
+    "width": 1920,
+    "height": 1080,
+    "duration": 240,
+    "seed": 7,
+    "register": "light",
+    "notes": "Synthetic map fixture, not segment 4 content. Abu Dhabi to El Fasher."
+  },
+  "fonts": [
+    {
+      "family": "FixtureSans",
+      "weight": 700,
+      "src": "fonts/LiberationSans-Bold.ttf"
+    }
+  ],
+  "palette": {
+    "ground": "#f4f1ea",
+    "ink": "#14213d",
+    "accent": "#e63946"
+  },
+  "nodes": [
+    {
+      "id": "map",
+      "type": "map",
+      "parent": null,
+      "z": 1,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "props": {
+        "register": "light",
+        "geometry": {
+          "countries": "assets/natural-earth/ne_10m_admin_0_countries.geojson",
+          "include": [
+            "SDN",
+            "EGY",
+            "LBY",
+            "TCD",
+            "ETH",
+            "SSD",
+            "ARE",
+            "SAU"
+          ]
+        },
+        "camera": [
+          {
+            "event": "open",
+            "center": [
+              29.5,
+              15.5
+            ],
+            "zoom": 4,
+            "bearing": 0,
+            "pitch": 0,
+            "travel": 2,
+            "ease": "easeInOutCubic"
+          },
+          {
+            "event": "fasher",
+            "center": [
+              25.35,
+              13.63
+            ],
+            "zoom": 4,
+            "bearing": 0,
+            "pitch": 0,
+            "travel": 2,
+            "ease": "easeInOutCubic"
+          }
+        ],
+        "focus": [
+          {
+            "event": "fasher",
+            "subject": "SDN",
+            "flood": "#e4572e",
+            "point": [
+              25.35,
+              13.63
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "id": "supply",
+            "coords": [
+              [
+                30.0,
+                16.0
+              ],
+              [
+                27.5,
+                14.8
+              ],
+              [
+                25.35,
+                13.63
+              ]
+            ],
+            "start": 5,
+            "draw": 4,
+            "ease": "easeInOutCubic"
+          }
+        ],
+        "labels": [
+          {
+            "id": "l-sudan",
+            "target": "SDN",
+            "text": "SUDAN",
+            "at": 130,
+            "mode": "pill",
+            "ground": "#F4F1EA"
+          },
+          {
+            "id": "l-fasher",
+            "target": [
+              25.35,
+              13.63
+            ],
+            "text": "EL FASHER",
+            "at": 150,
+            "mode": "leader"
+          }
+        ],
+        "badges": [
+          {
+            "id": "b-rsf",
+            "at": [
+              25.35,
+              13.63
+            ],
+            "label": "RSF",
+            "mode": "disc",
+            "f": 125
+          }
+        ]
+      }
+    }
+  ],
+  "timeline": [],
+  "events": [
+    {
+      "id": "open",
+      "f": 72,
+      "note": "opening framing"
+    },
+    {
+      "id": "fasher",
+      "f": 120,
+      "note": "El Fasher focus"
+    }
+  ]
+}

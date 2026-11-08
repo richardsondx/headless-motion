@@ -1,0 +1,245 @@
+{
+ "$defs": {
+  "badge": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "items": {
+      "type": "number"
+     },
+     "type": "array"
+    },
+    "id": {
+     "type": "string"
+    },
+    "label": {
+     "type": "string"
+    },
+    "mode": {
+     "enum": [
+      "disc",
+      "hex"
+     ],
+     "type": "string"
+    },
+    "f": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "id",
+    "label"
+   ],
+   "type": "object"
+  },
+  "cameraMove": {
+   "additionalProperties": false,
+   "properties": {
+    "bearing": {
+     "type": "number"
+    },
+    "center": {
+     "items": {
+      "type": "number"
+     },
+     "type": "array"
+    },
+    "ease": {
+     "type": "string"
+    },
+    "event": {
+     "type": "string"
+    },
+    "pitch": {
+     "type": "number"
+    },
+    "travel": {
+     "type": "number"
+    },
+    "zoom": {
+     "type": "number"
+    },
+    "followRoute": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "event",
+    "center",
+    "zoom"
+   ],
+   "type": "object"
+  },
+  "focusEvent": {
+   "additionalProperties": false,
+   "properties": {
+    "event": {
+     "type": "string"
+    },
+    "flood": {
+     "type": "string"
+    },
+    "subject": {
+     "type": "string"
+    },
+    "point": {
+     "items": {
+      "type": "number"
+     },
+     "type": "array"
+    }
+   },
+   "required": [
+    "event",
+    "subject"
+   ],
+   "type": "object"
+  },
+  "label": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "type": "number"
+    },
+    "id": {
+     "type": "string"
+    },
+    "mode": {
+     "enum": [
+      "pill",
+      "curved",
+      "leader"
+     ],
+     "type": "string"
+    },
+    "target": {
+     "type": [
+      "string",
+      "array"
+     ]
+    },
+    "text": {
+     "type": "string"
+    },
+    "ground": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "dy": {
+     "type": "number",
+     "description": "Leader-mode vertical offset in px from the point to the pill centre (1920x1080). Default -70. Negative moves the pill up."
+    }
+   },
+   "required": [
+    "id",
+    "target",
+    "text",
+    "at"
+   ],
+   "type": "object"
+  },
+  "route": {
+   "additionalProperties": false,
+   "properties": {
+    "coords": {
+     "items": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "type": "array"
+    },
+    "draw": {
+     "type": "number"
+    },
+    "ease": {
+     "type": "string"
+    },
+    "id": {
+     "type": "string"
+    },
+    "start": {
+     "type": "number"
+    },
+    "color": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "coords",
+    "start",
+    "draw"
+   ],
+   "type": "object"
+  }
+ },
+ "$id": "hme.map/1.0",
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "additionalProperties": false,
+ "properties": {
+  "badges": {
+   "items": {
+    "$ref": "#/$defs/badge"
+   },
+   "type": "array"
+  },
+  "camera": {
+   "items": {
+    "$ref": "#/$defs/cameraMove"
+   },
+   "type": "array"
+  },
+  "focus": {
+   "items": {
+    "$ref": "#/$defs/focusEvent"
+   },
+   "type": "array"
+  },
+  "geometry": {
+   "additionalProperties": false,
+   "properties": {
+    "countries": {
+     "type": "string"
+    },
+    "include": {
+     "items": {
+      "type": "string"
+     },
+     "type": "array"
+    }
+   },
+   "required": [
+    "include"
+   ],
+   "type": "object"
+  },
+  "labels": {
+   "items": {
+    "$ref": "#/$defs/label"
+   },
+   "type": "array"
+  },
+  "register": {
+   "enum": [
+    "light",
+    "dark"
+   ],
+   "type": "string"
+  },
+  "routes": {
+   "items": {
+    "$ref": "#/$defs/route"
+   },
+   "type": "array"
+  }
+ },
+ "required": [
+  "register",
+  "geometry"
+ ],
+ "type": "object"
+}

@@ -1,0 +1,266 @@
+{
+ "schema": "hme.scene/1.0",
+ "meta": {
+  "id": "seg4-scene-v4-dark",
+  "fps": 24,
+  "width": 1920,
+  "height": 1080,
+  "duration": 240,
+  "seed": 4,
+  "register": "dark",
+  "notes": "Segment 4 v4 DARK: Search Party UAE fUrNOVjWUVM 00:00-00:10. Register changed light->dark after measuring the video's own maxres thumbnail (land #133A35, bg #182022, 31px medians, 2026-11-07, saved verify-seg4/refs/seg4-thumbnail-maxres.jpg). Opening 00:00-00:10 frames were NEVER obtained (yt-dlp 429 + bot wall, web search found no opening still), so exact opening hexes, flood choice, ring shape and camera framing remain authored, not measured. Fonts changed Liberation Sans Bold -> Montserrat Bold (assets/fonts/Montserrat-Bold.ttf, weight 700) + Anton. Tool fixes in this cycle: tokens.dark.landMeasuredThumb/waterMeasuredThumb, compile.mjs dark base fill, runtime.mjs dark water/borders/Montserrat/grain+vignette, g8.mjs register-aware base fill. Timing/camera/events unchanged from v3. Cycle 2 (2026-11-07): grain-compensated dark bases land #0C3630 / water #111A1C so rendered values equal measured thumbnail #133A35 / #182022; EL FASHER label dy -250 so the pill (y 248-326) clears the ring top (y 339) by 13 px; leader line now reaches the pill bottom. Tool fixes: tokens.dark.landBase/waterBase, compile.mjs base fill, runtime.mjs waterBase + label dy + leader length."
+ },
+ "fonts": [
+  {
+   "family": "Montserrat",
+   "weight": 700,
+   "src": "fonts/Montserrat-Bold.ttf"
+  },
+  {
+   "family": "Anton",
+   "weight": 400,
+   "src": "fonts/Anton-Regular.ttf"
+  }
+ ],
+ "palette": {
+  "ground": "#182022",
+  "ink": "#F4F1EA",
+  "accent": "#E63946"
+ },
+ "nodes": [
+  {
+   "id": "map",
+   "type": "map",
+   "parent": null,
+   "z": 1,
+   "box": {
+    "x": 0,
+    "y": 0,
+    "w": 1920,
+    "h": 1080
+   },
+   "props": {
+    "register": "dark",
+    "geometry": {
+     "countries": "assets/natural-earth/ne_10m_admin_0_countries.geojson",
+     "include": [
+      "SDN",
+      "EGY",
+      "LBY",
+      "TCD",
+      "NER",
+      "NGA",
+      "CMR",
+      "CAF",
+      "COD",
+      "SSD",
+      "UGA",
+      "KEN",
+      "ETH",
+      "ERI",
+      "DJI",
+      "SOM",
+      "SAU",
+      "YEM",
+      "JOR",
+      "ISR",
+      "PSE",
+      "ARE"
+     ]
+    },
+    "camera": [
+     {
+      "event": "open",
+      "center": [
+       30,
+       13.5
+      ],
+      "zoom": 2.8,
+      "bearing": 0,
+      "pitch": 0,
+      "travel": 0.25,
+      "ease": "easeInOutCubic"
+     },
+     {
+      "event": "fasher",
+      "center": [
+       25.35,
+       13.63
+      ],
+      "zoom": 3.4,
+      "bearing": 0,
+      "pitch": 0,
+      "travel": 2,
+      "ease": "easeInOutCubic"
+     }
+    ],
+    "focus": [
+     {
+      "event": "fasher",
+      "subject": "SDN",
+      "flood": "#e4572e",
+      "point": [
+       25.35,
+       13.63
+      ]
+     }
+    ],
+    "routes": [
+     {
+      "id": "rsf-ring",
+      "coords": [
+       [
+        25.35,
+        15.63
+       ],
+       [
+        25.8676,
+        15.5619
+       ],
+       [
+        26.35,
+        15.3621
+       ],
+       [
+        26.7642,
+        15.0442
+       ],
+       [
+        27.0821,
+        14.63
+       ],
+       [
+        27.2819,
+        14.1476
+       ],
+       [
+        27.35,
+        13.63
+       ],
+       [
+        27.2819,
+        13.1124
+       ],
+       [
+        27.0821,
+        12.63
+       ],
+       [
+        26.7642,
+        12.2158
+       ],
+       [
+        26.35,
+        11.8979
+       ],
+       [
+        25.8676,
+        11.6981
+       ],
+       [
+        25.35,
+        11.63
+       ],
+       [
+        24.8324,
+        11.6981
+       ],
+       [
+        24.35,
+        11.8979
+       ],
+       [
+        23.9358,
+        12.2158
+       ],
+       [
+        23.6179,
+        12.63
+       ],
+       [
+        23.4181,
+        13.1124
+       ],
+       [
+        23.35,
+        13.63
+       ],
+       [
+        23.4181,
+        14.1476
+       ],
+       [
+        23.6179,
+        14.63
+       ],
+       [
+        23.9358,
+        15.0442
+       ],
+       [
+        24.35,
+        15.3621
+       ],
+       [
+        24.8324,
+        15.5619
+       ],
+       [
+        25.35,
+        15.63
+       ]
+      ],
+      "start": 5.2083332,
+      "draw": 1.5,
+      "ease": "easeInOutCubic"
+     }
+    ],
+    "labels": [
+     {
+      "id": "l-sudan",
+      "target": "SDN",
+      "text": "SUDAN",
+      "at": 24,
+      "mode": "pill"
+     },
+     {
+      "id": "l-fasher",
+      "target": [
+       25.35,
+       13.63
+      ],
+      "text": "EL FASHER",
+      "at": 145,
+      "mode": "leader",
+      "dy": -250
+     }
+    ],
+    "badges": [
+     {
+      "id": "b-rsf",
+      "at": [
+       26.2339,
+       12.7461
+      ],
+      "label": "RSF",
+      "mode": "disc",
+      "f": 135
+     }
+    ]
+   }
+  }
+ ],
+ "timeline": [],
+ "events": [
+  {
+   "id": "open",
+   "f": 12,
+   "note": "opening framing, Sudan and neighbours"
+  },
+  {
+   "id": "fasher",
+   "f": 120,
+   "note": "El Fasher focus: Sudan flood, RSF ring"
+  }
+ ]
+}

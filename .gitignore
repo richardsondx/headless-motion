@@ -1,0 +1,27 @@
+# Dependencies and runtimes
+node_modules/
+.venv/
+
+# Render outputs and scratch
+out/
+renders/
+.tmp/
+tmp-work/
+.pytest_cache/
+
+# Reference footage (YouTube-sourced, never redistribute)
+refs/
+verify-seg4/refs/
+
+# Benchmark run videos (results JSONs stay)
+benchmark/runs/
+hf-smoke/
+
+# Local media and OS files
+*.mp4
+*.webm
+*.mov
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
