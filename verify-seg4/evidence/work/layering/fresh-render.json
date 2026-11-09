@@ -1,0 +1,37 @@
+{
+  "verdict": {
+    "status": "FAIL",
+    "failed_bar": "seek, capture, or module (renderer exit 4)",
+    "detail": "Render failed at final (seek, capture, or module): CAPTURE_TIMEOUT CAPTURE_TIMEOUT capture frame=168 CAPTURE_TIMEOUT"
+  },
+  "numbers": {
+    "scene": "tests/fixtures/seg4-scene-clone-v5.json",
+    "profile": "final",
+    "render_out": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render",
+    "video": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render/video.mp4",
+    "video_exists": false,
+    "video_bytes": null,
+    "frames_captured": 0,
+    "frames_requested": 1,
+    "determinism_verified": null,
+    "renderer_exit": 4,
+    "renderer_code": "CAPTURE_TIMEOUT",
+    "renderer_stage": "capture",
+    "renderer_message": "CAPTURE_TIMEOUT",
+    "scene_sha256": "02ffdce8b3a39091364e9ad57d86cecce07cb7776dc19d29c42a112ed864ff84",
+    "render_report": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render/render-report.json"
+  },
+  "corrections": [],
+  "context": {
+    "thresholds": {
+      "renderer_exit": 0,
+      "frames_captured_min": 1
+    },
+    "control_ceiling": null,
+    "meaning": "The renderer did not finish the video. The exit code names the stage that failed, and the renderer message in numbers.renderer_message says why."
+  },
+  "next": "hme render tests/fixtures/seg4-scene-clone-v5.json --profile final --out verify-seg4/evidence/work/layering/fresh-render.json",
+  "limits": [
+    "This report covers the render only. It says nothing about how close the video is to a reference."
+  ]
+}

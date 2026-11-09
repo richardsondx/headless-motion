@@ -1,0 +1,359 @@
+{
+ "title": "v5 clone vs real Seg4 opening: SSIM/PSNR/LPIPS/Delta E, 4 paired seconds",
+ "date": "2026-11-08",
+ "scope": "Paired stills at seconds 1, 4, 5, 7 only. NOT a 240-frame check.",
+ "predicate": "pred-v1 seg4, FROZEN: mean SSIM >= 0.96, PSNR >= 35 dB, LPIPS <= 0.08, flat colour Delta E < 3. No threshold changed.",
+ "method": "Same as the v4 numbers run (measure.py): SSIM/PSNR via src/checker/metrics.py, LPIPS alex scaled to [-1, 1] as in checker S6, Delta E CIEDE2000 on 21x21 medians, contrast from WCAG ratios. V5 sample points equal the real trace points on both sides.",
+ "files_used": {
+  "real": [
+   "verify-seg4/evidence/work/real-1s.png",
+   "verify-seg4/evidence/work/real-4s.png",
+   "verify-seg4/evidence/work/real-5s.png",
+   "verify-seg4/evidence/work/real-7s.png"
+  ],
+  "v5": [
+   "verify-seg4/evidence/work/v5-1s.png",
+   "verify-seg4/evidence/work/v5-4s.png",
+   "verify-seg4/evidence/work/v5-5s.png",
+   "verify-seg4/evidence/work/v5-7s.png"
+  ],
+  "frames": "v5 frames 24/96/120/168 at 24 fps from out/seg4-final-v5/run-a/video.mp4"
+ },
+ "pairs": {
+  "1": {
+   "real_file": "verify-seg4/evidence/work/real-1s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-1s.png",
+   "ssim": 0.7533,
+   "psnr_db": 18.1,
+   "areas": {
+    "sudan": {
+     "present": true,
+     "real_hex": "#173A32",
+     "v5_hex": "#683737",
+     "real_point_hexes": [
+      "#193832",
+      "#153B33"
+     ],
+     "v5_point_hexes": [
+      "#3A3731",
+      "#96373D"
+     ],
+     "delta_e": 38.42,
+     "pass": false
+    },
+    "land": {
+     "present": true,
+     "real_hex": "#1C2A28",
+     "v5_hex": "#11181A",
+     "real_point_hexes": [
+      "#1C2B28",
+      "#1D2827"
+     ],
+     "v5_point_hexes": [
+      "#11191A",
+      "#11181A"
+     ],
+     "delta_e": 6.44,
+     "pass": false
+    },
+    "water": {
+     "present": true,
+     "real_hex": "#1D2827",
+     "v5_hex": "#11181A",
+     "real_point_hexes": [
+      "#1D2827"
+     ],
+     "v5_point_hexes": [
+      "#11181A"
+     ],
+     "delta_e": 5.86,
+     "pass": false
+    },
+    "rsf": {
+     "present": false,
+     "note": "absent in both frames"
+    }
+   },
+   "worst_delta_e": 38.42,
+   "verdict": "FAIL",
+   "notes": "v5 sample points equal the real trace points on both sides.",
+   "lpips": 0.6349
+  },
+  "4": {
+   "real_file": "verify-seg4/evidence/work/real-4s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-4s.png",
+   "ssim": 0.7711,
+   "psnr_db": 19.99,
+   "areas": {
+    "sudan": {
+     "present": true,
+     "real_hex": "#70422E",
+     "v5_hex": "#6C3E2A",
+     "real_point_hexes": [
+      "#CB4828",
+      "#143C34"
+     ],
+     "v5_point_hexes": [
+      "#CB4524",
+      "#0D362F"
+     ],
+     "delta_e": 1.43,
+     "pass": true
+    },
+    "land": {
+     "present": true,
+     "real_hex": "#1C2B28",
+     "v5_hex": "#152824",
+     "real_point_hexes": [
+      "#1C2B28",
+      "#1C2B28"
+     ],
+     "v5_point_hexes": [
+      "#152824",
+      "#152824"
+     ],
+     "delta_e": 2.12,
+     "pass": true
+    },
+    "water": {
+     "present": true,
+     "real_hex": "#1C2B28",
+     "v5_hex": "#152824",
+     "real_point_hexes": [
+      "#1C2B28"
+     ],
+     "v5_point_hexes": [
+      "#152824"
+     ],
+     "delta_e": 2.12,
+     "pass": true
+    },
+    "rsf": {
+     "present": true,
+     "real_hex": "#CA4828",
+     "v5_hex": "#CB4524",
+     "real_point_hexes": [
+      "#CC4726",
+      "#C74829"
+     ],
+     "v5_point_hexes": [
+      "#CB4524",
+      "#CB4524"
+     ],
+     "delta_e": 0.57,
+     "pass": true
+    }
+   },
+   "worst_delta_e": 2.12,
+   "verdict": "FAIL",
+   "notes": "v5 sample points equal the real trace points on both sides.",
+   "lpips": 0.6662
+  },
+  "5": {
+   "real_file": "verify-seg4/evidence/work/real-5s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-5s.png",
+   "ssim": 0.7811,
+   "psnr_db": 20.32,
+   "areas": {
+    "sudan": {
+     "present": true,
+     "real_hex": "#143C34",
+     "v5_hex": "#0C352F",
+     "real_point_hexes": [
+      "#143C34",
+      "#143C34"
+     ],
+     "v5_point_hexes": [
+      "#0C352F",
+      "#0D352F"
+     ],
+     "delta_e": 2.32,
+     "pass": true
+    },
+    "land": {
+     "present": true,
+     "real_hex": "#1C2B28",
+     "v5_hex": "#142723",
+     "real_point_hexes": [
+      "#1C2B28",
+      "#1C2B28"
+     ],
+     "v5_point_hexes": [
+      "#132622",
+      "#152824"
+     ],
+     "delta_e": 2.31,
+     "pass": true
+    },
+    "water": {
+     "present": true,
+     "real_hex": "#1C2B28",
+     "v5_hex": "#132622",
+     "real_point_hexes": [
+      "#1C2B28"
+     ],
+     "v5_point_hexes": [
+      "#132622"
+     ],
+     "delta_e": 2.53,
+     "pass": true
+    },
+    "rsf": {
+     "present": true,
+     "real_hex": "#C6482C",
+     "v5_hex": "#CB4524",
+     "real_point_hexes": [
+      "#C2472A",
+      "#CB492D"
+     ],
+     "v5_point_hexes": [
+      "#CB4524",
+      "#CB4524"
+     ],
+     "delta_e": 1.47,
+     "pass": true
+    }
+   },
+   "worst_delta_e": 2.53,
+   "verdict": "FAIL",
+   "notes": "v5 sample points equal the real trace points on both sides.",
+   "lpips": 0.6542
+  },
+  "7": {
+   "real_file": "verify-seg4/evidence/work/real-7s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-7s.png",
+   "ssim": 0.7851,
+   "psnr_db": 20.11,
+   "areas": {
+    "sudan": {
+     "present": true,
+     "real_hex": "#143C34",
+     "v5_hex": "#0C352F",
+     "real_point_hexes": [
+      "#143C34",
+      "#143C34",
+      "#143C34",
+      "#143C34",
+      "#143C34",
+      "#143C34"
+     ],
+     "v5_point_hexes": [
+      "#0C352F",
+      "#0C352F",
+      "#0C352F",
+      "#0C352F",
+      "#21312C",
+      "#0C352F"
+     ],
+     "delta_e": 2.32,
+     "pass": true
+    },
+    "land": {
+     "present": true,
+     "real_hex": "#1C2B28",
+     "v5_hex": "#132622",
+     "real_point_hexes": [
+      "#1C2B28",
+      "#1C2B28"
+     ],
+     "v5_point_hexes": [
+      "#132622",
+      "#132622"
+     ],
+     "delta_e": 2.53,
+     "pass": true
+    },
+    "water": {
+     "present": true,
+     "real_hex": "#191D1E",
+     "v5_hex": "#11191A",
+     "real_point_hexes": [
+      "#191D1E"
+     ],
+     "v5_point_hexes": [
+      "#11191A"
+     ],
+     "delta_e": 2.65,
+     "pass": true
+    },
+    "rsf": {
+     "present": true,
+     "real_hex": "#6F412F",
+     "v5_hex": "#6C3E2A",
+     "real_point_hexes": [
+      "#143C34",
+      "#CA462A"
+     ],
+     "v5_point_hexes": [
+      "#0E3630",
+      "#CB4524"
+     ],
+     "delta_e": 1.28,
+     "pass": true
+    }
+   },
+   "worst_delta_e": 2.65,
+   "verdict": "FAIL",
+   "notes": "v5 sample points equal the real trace points on both sides.",
+   "lpips": 0.6452
+  }
+ },
+ "means_4_pairs": {
+  "ssim": 0.7727,
+  "psnr_db": 19.63,
+  "lpips": 0.6501
+ },
+ "worst_delta_e": {
+  "value": 38.42,
+  "second": 1,
+  "area": "sudan"
+ },
+ "contrast_7s": {
+  "note": "v5 boxes equal the real boxes: the v5 SUDAN label matches the real box within 1 px and the EL FASHER box is the measured bbox used in the scene.",
+  "real": {
+   "sudan": {
+    "glyph_hex": "#C9D0CF",
+    "background_hex": "#3A4E4B",
+    "ratio": 5.65,
+    "meets_7_to_1": false
+   },
+   "el_fasher": {
+    "glyph_hex": "#A6C0BB",
+    "background_hex": "#153C34",
+    "ratio": 6.29,
+    "meets_7_to_1": false
+   }
+  },
+  "v5": {
+   "sudan": {
+    "glyph_hex": "#FFFFFF",
+    "background_hex": "#0D3630",
+    "ratio": 13.23,
+    "meets_7_to_1": true
+   },
+   "el_fasher": {
+    "glyph_hex": "#FFFFFF",
+    "background_hex": "#133A32",
+    "ratio": 12.51,
+    "meets_7_to_1": true
+   }
+  }
+ },
+ "overall_verdict": "FAIL, 0 of 4 pairs pass pred-v1 Seg4.",
+ "what_passes": [],
+ "what_fails": [
+  "1s",
+  "4s",
+  "5s",
+  "7s"
+ ],
+ "limits": [
+  "4 paired seconds only; no 240-frame verdict is possible from stills.",
+  "Real frames are screenshots of a compressed YouTube stream, not studio frames. They carry a caption bar and player control bar at the bottom, an SP channel watermark at bottom-right, and a mouse cursor in some frames. None of that is video content, and all of it lowers SSIM, PSNR and LPIPS against the clean v5 render.",
+  "Real frames were stretched from 1.845:1 to 16:9 (about 4% vertical) by the resize to 1920x1080.",
+  "Sub-second timing uncertainty is about +/-0.5s: YouTube timecodes truncate to whole seconds, while v5 frames are exact (frames 24/96/120/168 at 24 fps).",
+  "Delta E sample points are the trace points on both sides, because v5 places elements at the traced positions. Land and water are hard to separate in both videos at this compression.",
+  "The 1s water sample fell on land; treat that row as indicative only.",
+  "The full checker was not run: it needs a reference MP4, which does not exist, and the segment config has ref null. No fake reference video was built."
+ ]
+}

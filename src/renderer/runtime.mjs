@@ -29,6 +29,85 @@ window.__hme = (() => {
     return e ? (typeof e === "string" ? e : e.color) : v;
   }
 
+  function hexToRgba(hex, alpha) {
+    const m = /^#([0-9a-fA-F]{6})$/.exec(hex || "");
+    if (!m) return hex;
+    const v = parseInt(m[1], 16);
+    return "rgba(" + ((v >> 16) & 255) + ", " + ((v >> 8) & 255) + ", " + (v & 255) + ", " + alpha + ")";
+  }
+
+  // CSS filter for a shape node's glow and/or soft, from sampled state.
+  // "" when the node has neither, so flat nodes keep today's output.
+  // Mirrors shapeFilterCss in compile.mjs (glow drop-shadow first, then
+  // soft blur), so the per-frame value equals the compiled static value
+  // when nothing is animated. Gradient stops are static in v1 and are
+  // never touched here; only glow radius/intensity and soft radius move.
+  function shapeFilterCss(s, node) {
+    const p = node.props;
+    const parts = [];
+    if (p.glow) {
+      const radius = s["props.glow.radius"] ?? p.glow.radius;
+      const intensity = s["props.glow.intensity"] ?? p.glow.intensity;
+      const color = resolveColor(s["props.glow.color"] !== undefined ? s["props.glow.color"] : p.glow.color);
+      parts.push("drop-shadow(0 0 " + radius + "px " + hexToRgba(color, intensity) + ")");
+    }
+    if (p.soft) {
+      const radius = s["props.soft.radius"] ?? p.soft.radius;
+      parts.push("blur(" + radius + "px)");
+    }
+    return parts.join(" ");
+  }
+
+  // Per-frame glow/soft for an SVG shape node: update the compiled
+  // filter's primitives (feGaussianBlur stdDeviation = soft radius,
+  // feDropShadow stdDeviation = glow radius, flood-opacity = intensity).
+  // No-op when the node has neither glow nor soft (no filter exists).
+  function applySvgFilter(s, node, svg) {
+    const p = node.props;
+    if (!p.glow && !p.soft) return;
+    const filterEl = svg.querySelector("filter");
+    if (!filterEl) return;
+    if (p.soft) {
+      const blur = filterEl.querySelector("feGaussianBlur");
+      if (blur) blur.setAttribute("stdDeviation", String(s["props.soft.radius"] ?? p.soft.radius));
+    }
+    if (p.glow) {
+      const drop = filterEl.querySelector("feDropShadow");
+      if (drop) {
+        drop.setAttribute("stdDeviation", String(s["props.glow.radius"] ?? p.glow.radius));
+        drop.setAttribute("flood-opacity", String(s["props.glow.intensity"] ?? p.glow.intensity));
+        if (s["props.glow.color"] !== undefined) drop.setAttribute("flood-color", resolveColor(s["props.glow.color"]));
+      }
+    }
+  }
+
+  // Same points-to-d compiler as compile.mjs, for the per-frame d
+  // update below. Numbers go through fmtNum (4 decimals), so frame 0
+  // matches the compiled static d exactly when the scale is 1.
+  function fmtNum(n) {
+    return String(Number(Number(n).toFixed(4)));
+  }
+
+  function pointsToD(points, closed) {
+    if (!Array.isArray(points) || points.length === 0) return "";
+    const pt = (p) => fmtNum(p[0]) + " " + fmtNum(p[1]);
+    const parts = ["M " + pt(points[0].anchor)];
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const cur = points[i];
+      const anchor = pt(cur.anchor);
+      if (cur.command === "cubic") {
+        parts.push("C " + pt(prev.out || prev.anchor) + " " + pt(cur.in || cur.anchor) + " " + anchor);
+      } else if (cur.command === "smooth") {
+        parts.push("S " + pt(cur.in || cur.anchor) + " " + anchor);
+      } else {
+        parts.push("L " + anchor);
+      }
+    }
+    if (closed) parts.push("Z");
+    return parts.join(" ");
+  }
+
   function apply(state) {
     for (const node of scene.nodes) {
       const el = els[node.id];
@@ -43,15 +122,50 @@ window.__hme = (() => {
       el.style.left = x + "px";
       el.style.top = y + "px";
       el.style.opacity = String(s["transform.opacity"] ?? 1);
-      el.style.transform =
-        "scale(" + (s["transform.scale"] ?? 1) + ") rotate(" + (s["transform.rotation"] ?? 0) + "deg)";
+      // Non-uniform scale: scaleX and scaleY are effective values
+      // from the evaluator (they fall back to the uniform scale).
+      // A path node with points carries its scale in the points
+      // themselves (see the shape branch below), so it never gets a
+      // CSS scale as well: that would scale twice. Any other node
+      // scales in CSS, about the anchor when one is set, else the
+      // centre, which is the CSS default origin. When the scale is
+      // uniform and no anchor is set, this string is byte-identical
+      // to the old one.
+      const sx = s["transform.scaleX"] ?? s["transform.scale"] ?? 1;
+      const sy = s["transform.scaleY"] ?? s["transform.scale"] ?? 1;
+      const rot = s["transform.rotation"] ?? 0;
+      const hasPoints =
+        node.type === "shape" &&
+        node.props.kind !== "rect" &&
+        node.props.kind !== "ellipse" &&
+        Array.isArray(s["props.points"]) &&
+        s["props.points"].length > 0 &&
+        Array.isArray(s["props.points"][0].anchor);
+      const pointsScaled = hasPoints && (sx !== 1 || sy !== 1);
+      if (pointsScaled) {
+        el.style.transform = "rotate(" + rot + "deg)";
+      } else if (sx !== sy || s["transform.anchorX"] !== undefined || s["transform.anchorY"] !== undefined) {
+        const ax = s["transform.anchorX"] ?? (node.box.w || 0) / 2;
+        const ay = s["transform.anchorY"] ?? (node.box.h || 0) / 2;
+        el.style.transformOrigin = ax + "px " + ay + "px";
+        el.style.transform = "scale(" + sx + ", " + sy + ") rotate(" + rot + "deg)";
+      } else {
+        el.style.transform = "scale(" + (s["transform.scale"] ?? 1) + ") rotate(" + rot + "deg)";
+      }
       if (node.type === "text") {
         if (s["props.color"] !== undefined) el.style.color = resolveColor(s["props.color"]);
         if (s["props.text"] !== undefined && !node.props.kinetic) el.textContent = s["props.text"];
       } else if (node.type === "shape") {
         const kind = node.props.kind;
         if (kind === "rect" || kind === "ellipse") {
-          if (s["props.fill"] !== undefined) el.style.backgroundColor = resolveColor(s["props.fill"]);
+          // A gradient fill is a background image in the compiled HTML.
+          // The sampled fill is an object for gradient nodes, so
+          // s["props.fill"] is undefined there; the node-fill guard below
+          // is a second lock: never paint a flat backgroundColor over a
+          // compiled gradient. Flat nodes behave exactly as before.
+          if (s["props.fill"] !== undefined && typeof node.props.fill !== "object") el.style.backgroundColor = resolveColor(s["props.fill"]);
+          const filter = shapeFilterCss(s, node);
+          if (filter) el.style.filter = filter;
           if (s["props.stroke.color"] !== undefined) {
             el.style.borderColor = resolveColor(s["props.stroke.color"]);
             el.style.borderWidth = (s["props.stroke.width"] ?? 0) + "px";
@@ -62,17 +176,34 @@ window.__hme = (() => {
           if (svg) {
             const path = svg.querySelector("path,line,polyline,polygon");
             if (path) {
-              if (s["props.fill"] !== undefined) path.setAttribute("fill", resolveColor(s["props.fill"]));
+              // Per-frame d: the sampled points list (morphed by the
+              // evaluator, deformed, then scaled about the anchor
+              // here) compiles to d on every frame. This is what
+              // makes a morph visible: frame 0 alone is static.
+              if (hasPoints) {
+                let pts = s["props.points"];
+                if (sx !== 1 || sy !== 1) {
+                  const ax = s["transform.anchorX"] ?? (node.box.w || 0) / 2;
+                  const ay = s["transform.anchorY"] ?? (node.box.h || 0) / 2;
+                  pts = scalePoints(pts, sx, sy, ax, ay);
+                }
+                path.setAttribute("d", pointsToD(pts, s["props.closed"] ?? node.props.closed));
+              }
+              // Same gradient guard as divs: a gradient fill is
+              // fill="url(#grad-...)" in the compiled HTML and the sampled
+              // fill is an object, so a flat fill is never painted over it.
+              if (s["props.fill"] !== undefined && typeof node.props.fill !== "object") path.setAttribute("fill", resolveColor(s["props.fill"]));
               if (s["props.stroke.color"] !== undefined) {
                 path.setAttribute("stroke", resolveColor(s["props.stroke.color"]));
                 path.setAttribute("stroke-width", String(s["props.stroke.width"] ?? 1));
               }
             }
+            applySvgFilter(s, node, svg);
           }
         }
       } else if (node.type === "image") {
         const img = el.querySelector("img");
-        if (img && s["props.src"] !== undefined) img.setAttribute("src", s["props.src"]);
+        if (img && s["props.src"] !== undefined && !String(img.getAttribute("src") || "").startsWith("data:")) img.setAttribute("src", s["props.src"]);
       }
       // map and chart nodes are owned by their module runtimes, which read
       // the same sampled state and register waiters below.

@@ -6,16 +6,18 @@ import { createHash } from "node:crypto";
 import { readFileSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
-import { renderWithReport } from "./render.mjs";
+import { renderWithReport, renderRealtime } from "./render.mjs";
 import { writeFileRetry, mkdirRetry } from "./retry.mjs";
+import profiles from "../scene/profiles.json" with { type: "json" };
 
 const sha256File = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 
 function parseArgs(argv) {
-  const out = { frames: null, order: null, keepFrames: false, verifyDeterminism: false, sets: [] };
+  const out = { frames: null, order: null, keepFrames: false, verifyDeterminism: false, realtime: false, sets: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--profile") out.profile = argv[++i];
+    else if (a === "--realtime") out.realtime = true;
     else if (a === "--set") out.sets.push(argv[++i]);
     else if (a === "--out") out.out = argv[++i];
     else if (a === "--frames") {
@@ -98,7 +100,7 @@ export function resolveCompact(scenePath) {
 // Wall time lives in render-report.md only, never in render-report.json:
 // the JSON must stay byte-identical across runs for the same inputs, and a
 // wall clock would break that. The .md is evidence, not part of the hash.
-function writeReportMd(outDir, { profile, scenePath, wallS, overrides, status, videoSha }) {
+function writeReportMd(outDir, { profile, scenePath, wallS, overrides, status, videoSha, videoFile = "video.mp4", mode = "deterministic" }) {
   try {
     mkdirRetry(resolve(outDir), { recursive: true });
   const lines = [
@@ -107,6 +109,8 @@ function writeReportMd(outDir, { profile, scenePath, wallS, overrides, status, v
     `- profile: ${profile}`,
     `- scene: ${scenePath}`,
     `- status: ${status}`,
+    `- mode: ${mode}`,
+    `- video: ${videoFile}`,
     `- wall_s: ${wallS}`,
     `- video_sha256: ${videoSha || "-"}`,
     `- overrides: ${overrides.length ? overrides.join("; ") : "-"}`,
@@ -126,12 +130,19 @@ function writeReportMd(outDir, { profile, scenePath, wallS, overrides, status, v
 
 async function main(argv) {
   if (argv[0] !== "render" || !argv[1]) {
-    console.error("usage: node src/renderer/cli.mjs render <scene.json> --profile previs|draft|final --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism]");
+    console.error("usage: node src/renderer/cli.mjs render <scene.json> --profile previs|draft|final|final-max|preview-rt [--realtime] --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism]");
+    console.error("  --realtime is shorthand for --profile preview-rt: a NON-DETERMINISTIC real-time preview (preview-rt.mp4), never for final or verification.");
     return 2;
   }
   const opts = parseArgs(argv.slice(1));
+  if (opts.realtime) opts.profile = "preview-rt";
   if (!opts.profile || !opts.out) {
     console.error("missing --profile or --out");
+    return 2;
+  }
+  const isRealtime = Boolean(profiles[opts.profile]?.realtime);
+  if (isRealtime && opts.verifyDeterminism) {
+    console.error("preview-rt is non-deterministic; --verify-determinism does not apply");
     return 2;
   }
   const crfOverride = process.env.HME_CRF !== undefined ? Number(process.env.HME_CRF) : null;
@@ -189,14 +200,16 @@ async function main(argv) {
     console.log(`OK deterministic ${opts.profile} ${Object.keys(ha).length} frames video ${va.slice(0, 16)}`);
     return 0;
   }
-  const { r, wallS } = await timed(() => renderWithReport({ scenePath, profileName: opts.profile, outDir: resolve(opts.out), frames: opts.frames, order: opts.order, keepFrames: opts.keepFrames, crfOverride, overrides }));
-  writeReportMd(resolve(opts.out), { profile: opts.profile, scenePath, wallS, overrides, status: r.exit === 0 ? "ok" : "failed", videoSha: r.exit === 0 ? sha256File(resolve(opts.out, "video.mp4")) : null });
+  const videoFile = isRealtime ? "preview-rt.mp4" : "video.mp4";
+  const renderFn = isRealtime ? renderRealtime : undefined;
+  const { r, wallS } = await timed(() => renderWithReport({ scenePath, profileName: opts.profile, outDir: resolve(opts.out), frames: opts.frames, order: opts.order, keepFrames: opts.keepFrames, crfOverride, overrides }, renderFn));
+  writeReportMd(resolve(opts.out), { profile: opts.profile, scenePath, wallS, overrides, status: r.exit === 0 ? "ok" : "failed", videoSha: r.exit === 0 ? sha256File(resolve(opts.out, videoFile)) : null, videoFile, mode: isRealtime ? "realtime-preview (NON-DETERMINISTIC)" : "deterministic" });
   if (r.exit !== 0) {
-    rmSync(resolve(opts.out, "video.mp4"), { force: true });
+    rmSync(resolve(opts.out, videoFile), { force: true });
     console.error(`${r.report?.code || "FAILED"} ${r.report?.stage || ""} frame=${r.report?.frame ?? ""} ${r.report?.message || ""}`);
     return r.exit;
   }
-  console.log(`OK ${opts.profile} ${r.result.report.frames_captured} frames ${resolve(opts.out, "video.mp4")}`);
+  console.log(`OK ${opts.profile} ${r.result.report.frames_captured} frames ${resolve(opts.out, videoFile)}${isRealtime ? " NON-DETERMINISTIC preview" : ""}`);
   return 0;
 }
 

@@ -1,0 +1,2411 @@
+{
+ "title": "v5 clone vs real Seg4 opening: layer layout check, 4 paired seconds",
+ "date": "2026-11-08",
+ "scope": "Paired stills at seconds 1, 4, 5, 7 only. NOT a 240-frame check.",
+ "aspect_mapping": {
+  "real_aspect": 1.845,
+  "render_aspect": 1.778,
+  "player_rect_screenshot_px": [
+   185,
+   55,
+   1717,
+   885
+  ],
+  "mapping": "x1080 = (x - 185) * 1.2524; y1080 = (y - 55) * 1.2996",
+  "note": "Real frames were cropped to the player rect and resized to 1920x1080, about 4% vertical stretch. Y positions carry about +/-15 px uncertainty (0.0139 as a ratio)."
+ },
+ "tolerances": {
+  "position_ratio": 0.02,
+  "border_ratio": 0.02,
+  "zoom_ratio": 0.02,
+  "pair_gap_ratio": 0.02
+ },
+ "predicate": "pred-v1 seg4, FROZEN: mean SSIM >= 0.96, PSNR >= 35 dB, LPIPS <= 0.08, flat colour Delta E < 3. No threshold changed.",
+ "method": {
+  "segmentation": "Flat-colour masks (RGB euclidean, tolerances per layer) on a stride-2 subsample, 4-connectivity, skimage.measure.label. Sudan = largest teal component. RSF badge passes a discriminator (interior, fill >= 0.25, aspect 0.7-1.4) so the coral flood is not mistaken for a badge.",
+  "real_side": "Trace values are ground truth for label/badge/dot centres and Sudan widths. Segmentation is validated against the trace in the validation section, not trusted blind.",
+  "v5_side": "Labels are white-text clusters named by glyph count (one cluster = SUDAN; two clusters, the 5-glyph one = SUDAN, the other = EL FASHER). Sudan is coloured differently from land in v5, so the segmented Sudan region is the true Sudan width. The 7s EL FASHER pair gaps are computed from the segmented v5 badge corner and dot, not hardcoded as absent.",
+  "existing_numbers": "SSIM, PSNR, LPIPS and worst flat Delta E are reused from v5-vs-real-numbers.json, not re-run. CIE76 per area is recomputed from the same published hex medians.",
+  "dreamsim": "not run: weights absent, no download attempted. Use --feel to ask; it still reports not run."
+ },
+ "validation": {
+  "sudan_width_seg_vs_trace": {
+   "1": {
+    "segmented_ratio": 0.0865,
+    "trace_ratio": 0.0781,
+    "gap": 0.0084
+   },
+   "4": {
+    "segmented_ratio": 0.2875,
+    "trace_ratio": 0.2792,
+    "gap": 0.0083
+   },
+   "5": {
+    "segmented_ratio": 0.3167,
+    "trace_ratio": 0.3078,
+    "gap": 0.0089
+   },
+   "7": {
+    "segmented_ratio": 0.349,
+    "trace_ratio": 0.3391,
+    "gap": 0.0099
+   }
+  },
+  "rsf_bbox_seg_vs_trace": {
+   "4": {
+    "segmented_bbox": [
+     908,
+     532,
+     1032,
+     662
+    ],
+    "trace_bbox": [
+     903,
+     530,
+     1033,
+     664
+    ],
+    "max_edge_gap_px": 5.0
+   },
+   "5": {
+    "segmented_bbox": [
+     732,
+     594,
+     870,
+     742
+    ],
+    "trace_bbox": [
+     728,
+     592,
+     870,
+     740
+    ],
+    "max_edge_gap_px": 4.5
+   },
+   "7": {
+    "segmented_bbox": [
+     618,
+     652,
+     774,
+     818
+    ],
+    "trace_bbox": [
+     613,
+     649,
+     773,
+     815
+    ],
+    "max_edge_gap_px": 5.0
+   }
+  },
+  "label_match_real": {
+   "1": null,
+   "4": {
+    "bbox": [
+     897,
+     476,
+     1044,
+     502
+    ],
+    "centroid": [
+     967.9,
+     488.1
+    ],
+    "trace_centre": [
+     968,
+     487
+    ],
+    "centroid_gap_px": 1.1
+   },
+   "5": {
+    "bbox": [
+     895,
+     490,
+     1058,
+     519
+    ],
+    "centroid": [
+     974.0,
+     504.7
+    ],
+    "trace_centre": [
+     975,
+     503
+    ],
+    "centroid_gap_px": 2.0
+   },
+   "7": {
+    "bbox": [
+     894,
+     513,
+     1075,
+     544
+    ],
+    "centroid": [
+     982.2,
+     528.4
+    ],
+    "trace_centre": [
+     984,
+     528
+    ],
+    "centroid_gap_px": 1.8
+   }
+  },
+  "dot_found_real": {
+   "7": {
+    "centroid": [
+     788.5,
+     650.5
+    ],
+    "trace_centre": [
+     783,
+     646
+    ],
+    "pixels": 32
+   }
+  }
+ },
+ "pairs": {
+  "1": {
+   "real_file": "verify-seg4/evidence/work/real-1s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-1s.png",
+   "existing": {
+    "ssim": 0.7533,
+    "psnr_db": 18.1,
+    "lpips": 0.6349,
+    "worst_delta_e_ciede2000": 38.42,
+    "worst_area": "sudan",
+    "delta_e_cie76_by_area": {
+     "sudan": 38.52,
+     "land": 9.24,
+     "water": 8.01
+    },
+    "worst_delta_e_cie76": 38.52
+   },
+   "layers": {
+    "sudan": {
+     "real": {
+      "centroid": [
+       1030.6,
+       674.4
+      ],
+      "centroid_ratio": [
+       0.5368,
+       0.6245
+      ],
+      "bbox": [
+       952,
+       606,
+       1118,
+       746
+      ],
+      "bbox_ratio": [
+       0.4958,
+       0.5611,
+       0.0865,
+       0.1296
+      ],
+      "area_ratio": 0.0083,
+      "border_ratio": {
+       "left": 0.4958,
+       "right": 0.4177,
+       "top": 0.5611,
+       "bottom": 0.3093
+      },
+      "present": true,
+      "median_hex": "#143C34",
+      "pixels": 17180,
+      "flags": []
+     },
+     "v5": {
+      "centroid": [
+       1028.0,
+       669.0
+      ],
+      "centroid_ratio": [
+       0.5354,
+       0.6195
+      ],
+      "bbox": [
+       966,
+       622,
+       1094,
+       726
+      ],
+      "bbox_ratio": [
+       0.5031,
+       0.5759,
+       0.0667,
+       0.0963
+      ],
+      "area_ratio": 0.0035,
+      "border_ratio": {
+       "left": 0.5031,
+       "right": 0.4302,
+       "top": 0.5759,
+       "bottom": 0.3278
+      },
+      "present": true,
+      "median_hex": "#0D3630",
+      "pixels": 7168,
+      "flags": []
+     }
+    },
+    "base": {
+     "real": {
+      "centroid": [
+       999.6,
+       527.1
+      ],
+      "centroid_ratio": [
+       0.5206,
+       0.4881
+      ],
+      "bbox": [
+       0,
+       2,
+       1920,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0019,
+       1.0,
+       0.9981
+      ],
+      "area_ratio": 0.8265,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0,
+       "top": 0.0019,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#1C2826",
+      "pixels": 1713832,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     },
+     "v5": {
+      "centroid": [
+       1002.9,
+       701.5
+      ],
+      "centroid_ratio": [
+       0.5224,
+       0.6496
+      ],
+      "bbox": [
+       48,
+       46,
+       1906,
+       1038
+      ],
+      "bbox_ratio": [
+       0.025,
+       0.0426,
+       0.9677,
+       0.9185
+      ],
+      "area_ratio": 0.0299,
+      "border_ratio": {
+       "left": 0.025,
+       "right": 0.0073,
+       "top": 0.0426,
+       "bottom": 0.0389
+      },
+      "present": true,
+      "median_hex": "#152824",
+      "pixels": 62092,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     }
+    },
+    "rsf": {
+     "real": {
+      "present": false,
+      "median_hex": null,
+      "pixels": 0,
+      "centroid": null,
+      "centroid_ratio": null,
+      "bbox": null,
+      "bbox_ratio": null,
+      "area_ratio": 0.0,
+      "border_ratio": null,
+      "flags": [
+       "ABSENT"
+      ],
+      "discriminator": {
+       "candidates": 0
+      }
+     },
+     "v5": {
+      "present": false,
+      "median_hex": null,
+      "pixels": 0,
+      "centroid": null,
+      "centroid_ratio": null,
+      "bbox": null,
+      "bbox_ratio": null,
+      "area_ratio": 0.0,
+      "border_ratio": null,
+      "flags": [
+       "ABSENT"
+      ],
+      "discriminator": {
+       "candidates": 0
+      }
+     }
+    },
+    "october": {
+     "real": {
+      "centroid": [
+       1056.7,
+       557.9
+      ],
+      "centroid_ratio": [
+       0.5503,
+       0.5166
+      ],
+      "bbox": [
+       374,
+       476,
+       1614,
+       606
+      ],
+      "bbox_ratio": [
+       0.1948,
+       0.4407,
+       0.6458,
+       0.1204
+      ],
+      "area_ratio": 0.0008,
+      "border_ratio": {
+       "left": 0.1948,
+       "right": 0.1594,
+       "top": 0.4407,
+       "bottom": 0.4389
+      },
+      "present": true,
+      "median_hex": "#A5ABA8",
+      "pixels": 1580,
+      "flags": [],
+      "components": [
+       {
+        "n": 220,
+        "bbox": [
+         1410,
+         604,
+         1520,
+         606
+        ],
+        "centroid": [
+         1464.0,
+         604.0
+        ]
+       },
+       {
+        "n": 212,
+        "bbox": [
+         1142,
+         604,
+         1248,
+         606
+        ],
+        "centroid": [
+         1194.0,
+         604.0
+        ]
+       },
+       {
+        "n": 200,
+        "bbox": [
+         998,
+         510,
+         1004,
+         604
+        ],
+        "centroid": [
+         998.16,
+         553.28
+        ]
+       },
+       {
+        "n": 156,
+        "bbox": [
+         902,
+         558,
+         978,
+         562
+        ],
+        "centroid": [
+         939.9487179487179,
+         559.9487179487179
+        ]
+       },
+       {
+        "n": 104,
+        "bbox": [
+         772,
+         480,
+         774,
+         532
+        ],
+        "centroid": [
+         772.0,
+         505.0
+        ]
+       },
+       {
+        "n": 84,
+        "bbox": [
+         1542,
+         532,
+         1568,
+         550
+        ],
+        "centroid": [
+         1549.4285714285713,
+         544.5714285714286
+        ]
+       },
+       {
+        "n": 84,
+        "bbox": [
+         574,
+         534,
+         576,
+         576
+        ],
+        "centroid": [
+         574.0,
+         554.0
+        ]
+       },
+       {
+        "n": 60,
+        "bbox": [
+         1574,
+         476,
+         1604,
+         478
+        ],
+        "centroid": [
+         1588.0,
+         476.0
+        ]
+       },
+       {
+        "n": 56,
+        "bbox": [
+         748,
+         476,
+         772,
+         480
+        ],
+        "centroid": [
+         757.5714285714286,
+         476.2857142857143
+        ]
+       },
+       {
+        "n": 56,
+        "bbox": [
+         374,
+         528,
+         376,
+         556
+        ],
+        "centroid": [
+         374.0,
+         541.0
+        ]
+       },
+       {
+        "n": 56,
+        "bbox": [
+         1058,
+         552,
+         1084,
+         556
+        ],
+        "centroid": [
+         1070.857142857143,
+         553.8571428571429
+        ]
+       },
+       {
+        "n": 52,
+        "bbox": [
+         1588,
+         538,
+         1614,
+         540
+        ],
+        "centroid": [
+         1600.0,
+         538.0
+        ]
+       }
+      ]
+     },
+     "v5": {
+      "centroid": [
+       978.1,
+       544.8
+      ],
+      "centroid_ratio": [
+       0.5094,
+       0.5044
+      ],
+      "bbox": [
+       338,
+       466,
+       1590,
+       608
+      ],
+      "bbox_ratio": [
+       0.176,
+       0.4315,
+       0.6521,
+       0.1315
+      ],
+      "area_ratio": 0.037,
+      "border_ratio": {
+       "left": 0.176,
+       "right": 0.1719,
+       "top": 0.4315,
+       "bottom": 0.437
+      },
+      "present": true,
+      "median_hex": "#ACACAC",
+      "pixels": 76812,
+      "flags": [],
+      "components": [
+       {
+        "n": 9792,
+        "bbox": [
+         338,
+         472,
+         484,
+         608
+        ],
+        "centroid": [
+         409.8872549019608,
+         538.9950980392157
+        ]
+       },
+       {
+        "n": 8596,
+        "bbox": [
+         1262,
+         472,
+         1374,
+         608
+        ],
+        "centroid": [
+         1317.0181479758028,
+         539.0293159609121
+        ]
+       },
+       {
+        "n": 8572,
+        "bbox": [
+         800,
+         466,
+         910,
+         608
+        ],
+        "centroid": [
+         844.2995800279981,
+         545.5464302379842
+        ]
+       },
+       {
+        "n": 7776,
+        "bbox": [
+         1486,
+         474,
+         1590,
+         608
+        ],
+        "centroid": [
+         1537.795267489712,
+         540.074074074074
+        ]
+       },
+       {
+        "n": 7300,
+        "bbox": [
+         1378,
+         472,
+         1482,
+         606
+        ],
+        "centroid": [
+         1433.0849315068492,
+         542.5950684931507
+        ]
+       },
+       {
+        "n": 7296,
+        "bbox": [
+         1150,
+         472,
+         1254,
+         606
+        ],
+        "centroid": [
+         1205.0032894736842,
+         542.2105263157895
+        ]
+       },
+       {
+        "n": 6764,
+        "bbox": [
+         916,
+         504,
+         1024,
+         608
+        ],
+        "centroid": [
+         966.943820224719,
+         553.8438793613246
+        ]
+       },
+       {
+        "n": 6696,
+        "bbox": [
+         674,
+         504,
+         784,
+         608
+        ],
+        "centroid": [
+         727.6152927120669,
+         554.1039426523297
+        ]
+       },
+       {
+        "n": 5384,
+        "bbox": [
+         492,
+         504,
+         594,
+         608
+        ],
+        "centroid": [
+         536.5735512630015,
+         554.3759286775631
+        ]
+       },
+       {
+        "n": 4884,
+        "bbox": [
+         596,
+         482,
+         672,
+         608
+        ],
+        "centroid": [
+         629.5429975429976,
+         542.5274365274365
+        ]
+       },
+       {
+        "n": 3752,
+        "bbox": [
+         1038,
+         504,
+         1100,
+         606
+        ],
+        "centroid": [
+         1058.3411513859276,
+         546.1194029850747
+        ]
+       }
+      ]
+     }
+    },
+    "v5_text_clusters": [],
+    "v5_labels_identified": {
+     "sudan": null,
+     "el_fasher": null,
+     "flags": [
+      "NO_TEXT_CLUSTERS"
+     ]
+    }
+   },
+   "checks": {
+    "sudan_centroid": {
+     "gap": 0.0052,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_width": {
+     "gap": 0.0198,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_left": {
+     "gap": 0.0073,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_right": {
+     "gap": 0.0125,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_top": {
+     "gap": 0.0148,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_bottom": {
+     "gap": 0.0185,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_colour_ciede2000": {
+     "value": 2.05,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_colour_cie76": {
+     "value": 2.9,
+     "pass": true,
+     "status": "pass"
+    },
+    "rsf_badge": {
+     "gap": null,
+     "pass": null,
+     "status": "absent in both"
+    },
+    "october_title": {
+     "gap": 0.0427,
+     "pass": false,
+     "status": "fail"
+    },
+    "base_colour_ciede2000": {
+     "value": 3.32,
+     "pass": false,
+     "status": "fail"
+    },
+    "base_colour_cie76": {
+     "value": 3.35,
+     "pass": false,
+     "status": "fail"
+    },
+    "base_colour": {
+     "real_hex": "#1C2826",
+     "v5_hex": "#152824"
+    }
+   },
+   "pair_gaps": {
+    "sudan_label_to_sudan_centroid": {
+     "real": {
+      "dx_ratio": -0.0007,
+      "dy_ratio": 0.0028,
+      "dist_ratio": 0.0029
+     },
+     "v5": null,
+     "gap": {
+      "gap": null,
+      "pass": null,
+      "status": "unmeasurable"
+     }
+    },
+    "el_fasher_label_to_rsf_corner": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    },
+    "el_fasher_dot_to_label": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    }
+   },
+   "layer_pass": false,
+   "pred_v1_numbers_pass": false,
+   "pair_verdict": "FAIL"
+  },
+  "4": {
+   "real_file": "verify-seg4/evidence/work/real-4s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-4s.png",
+   "existing": {
+    "ssim": 0.7711,
+    "psnr_db": 19.99,
+    "lpips": 0.6662,
+    "worst_delta_e_ciede2000": 2.12,
+    "worst_area": "water",
+    "delta_e_cie76_by_area": {
+     "sudan": 1.69,
+     "land": 2.53,
+     "water": 2.53,
+     "rsf": 2.28
+    },
+    "worst_delta_e_cie76": 2.53
+   },
+   "layers": {
+    "sudan": {
+     "real": {
+      "centroid": [
+       959.5,
+       489.6
+      ],
+      "centroid_ratio": [
+       0.4997,
+       0.4533
+      ],
+      "bbox": [
+       696,
+       284,
+       1248,
+       762
+      ],
+      "bbox_ratio": [
+       0.3625,
+       0.263,
+       0.2875,
+       0.4426
+      ],
+      "area_ratio": 0.0782,
+      "border_ratio": {
+       "left": 0.3625,
+       "right": 0.35,
+       "top": 0.263,
+       "bottom": 0.2944
+      },
+      "present": true,
+      "median_hex": "#143C34",
+      "pixels": 162240,
+      "flags": []
+     },
+     "v5": {
+      "centroid": [
+       958.8,
+       488.5
+      ],
+      "centroid_ratio": [
+       0.4994,
+       0.4523
+      ],
+      "bbox": [
+       714,
+       316,
+       1230,
+       730
+      ],
+      "bbox_ratio": [
+       0.3719,
+       0.2926,
+       0.2687,
+       0.3833
+      ],
+      "area_ratio": 0.0472,
+      "border_ratio": {
+       "left": 0.3719,
+       "right": 0.3594,
+       "top": 0.2926,
+       "bottom": 0.3241
+      },
+      "present": true,
+      "median_hex": "#0D3630",
+      "pixels": 97944,
+      "flags": []
+     }
+    },
+    "base": {
+     "real": {
+      "centroid": [
+       946.5,
+       528.9
+      ],
+      "centroid_ratio": [
+       0.493,
+       0.4897
+      ],
+      "bbox": [
+       0,
+       2,
+       1920,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0019,
+       1.0,
+       0.9981
+      ],
+      "area_ratio": 0.8422,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0,
+       "top": 0.0019,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#1C2B28",
+      "pixels": 1746424,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     },
+     "v5": {
+      "centroid": [
+       884.4,
+       530.9
+      ],
+      "centroid_ratio": [
+       0.4606,
+       0.4916
+      ],
+      "bbox": [
+       12,
+       0,
+       1852,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0063,
+       0.0,
+       0.9583,
+       1.0
+      ],
+      "area_ratio": 0.4029,
+      "border_ratio": {
+       "left": 0.0063,
+       "right": 0.0354,
+       "top": 0.0,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#152824",
+      "pixels": 835396,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     }
+    },
+    "rsf": {
+     "real": {
+      "centroid": [
+       967.3,
+       583.8
+      ],
+      "centroid_ratio": [
+       0.5038,
+       0.5406
+      ],
+      "bbox": [
+       908,
+       532,
+       1032,
+       662
+      ],
+      "bbox_ratio": [
+       0.4729,
+       0.4926,
+       0.0646,
+       0.1204
+      ],
+      "area_ratio": 0.0046,
+      "border_ratio": {
+       "left": 0.4729,
+       "right": 0.4625,
+       "top": 0.4926,
+       "bottom": 0.387
+      },
+      "present": true,
+      "median_hex": "#CC4726",
+      "pixels": 9480,
+      "flags": [],
+      "discriminator": {
+       "candidates": 2,
+       "fill": 0.588,
+       "aspect": 0.954,
+       "union_bbox": [
+        908,
+        532,
+        1032,
+        662
+       ]
+      }
+     },
+     "v5": {
+      "centroid": [
+       967.1,
+       594.1
+      ],
+      "centroid_ratio": [
+       0.5037,
+       0.5501
+      ],
+      "bbox": [
+       904,
+       530,
+       1032,
+       664
+      ],
+      "bbox_ratio": [
+       0.4708,
+       0.4907,
+       0.0667,
+       0.1241
+      ],
+      "area_ratio": 0.0079,
+      "border_ratio": {
+       "left": 0.4708,
+       "right": 0.4625,
+       "top": 0.4907,
+       "bottom": 0.3852
+      },
+      "present": true,
+      "median_hex": "#CB4524",
+      "pixels": 16436,
+      "flags": [],
+      "discriminator": {
+       "candidates": 1,
+       "fill": 0.958,
+       "aspect": 0.955,
+       "union_bbox": [
+        904,
+        530,
+        1032,
+        664
+       ]
+      }
+     }
+    },
+    "october": {
+     "real": {
+      "centroid": [
+       968.9,
+       901.3
+      ],
+      "centroid_ratio": [
+       0.5046,
+       0.8345
+      ],
+      "bbox": [
+       884,
+       864,
+       1062,
+       964
+      ],
+      "bbox_ratio": [
+       0.4604,
+       0.8,
+       0.0927,
+       0.0926
+      ],
+      "area_ratio": 0.0001,
+      "border_ratio": {
+       "left": 0.4604,
+       "right": 0.4469,
+       "top": 0.8,
+       "bottom": 0.1074
+      },
+      "present": true,
+      "median_hex": "#ABAFAE",
+      "pixels": 208,
+      "flags": [],
+      "components": [
+       {
+        "n": 72,
+        "bbox": [
+         884,
+         864,
+         886,
+         900
+        ],
+        "centroid": [
+         884.0,
+         881.0
+        ]
+       },
+       {
+        "n": 72,
+        "bbox": [
+         1060,
+         864,
+         1062,
+         900
+        ],
+        "centroid": [
+         1060.0,
+         881.0
+        ]
+       },
+       {
+        "n": 64,
+        "bbox": [
+         962,
+         932,
+         964,
+         964
+        ],
+        "centroid": [
+         962.0,
+         947.0
+        ]
+       }
+      ]
+     },
+     "v5": {
+      "centroid": [
+       770.0,
+       451.0
+      ],
+      "centroid_ratio": [
+       0.401,
+       0.4176
+      ],
+      "bbox": [
+       770,
+       392,
+       772,
+       512
+      ],
+      "bbox_ratio": [
+       0.401,
+       0.363,
+       0.001,
+       0.1111
+      ],
+      "area_ratio": 0.0001,
+      "border_ratio": {
+       "left": 0.401,
+       "right": 0.5979,
+       "top": 0.363,
+       "bottom": 0.5259
+      },
+      "present": true,
+      "median_hex": "#9FB1AE",
+      "pixels": 240,
+      "flags": [],
+      "components": [
+       {
+        "n": 240,
+        "bbox": [
+         770,
+         392,
+         772,
+         512
+        ],
+        "centroid": [
+         770.0,
+         451.0
+        ]
+       }
+      ]
+     }
+    },
+    "v5_text_clusters": [
+     {
+      "bbox": [
+       898,
+       474,
+       1038,
+       502
+      ],
+      "centroid": [
+       964.8,
+       487.1
+      ],
+      "n_components": 5,
+      "pixels": 1788
+     },
+     {
+      "bbox": [
+       948,
+       634,
+       990,
+       650
+      ],
+      "centroid": [
+       967.9,
+       640.1
+      ],
+      "n_components": 3,
+      "pixels": 344
+     }
+    ],
+    "v5_labels_identified": {
+     "sudan": [
+      964.8,
+      487.1
+     ],
+     "el_fasher": null,
+     "flags": []
+    }
+   },
+   "checks": {
+    "sudan_centroid": {
+     "gap": 0.001,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_width": {
+     "gap": 0.0188,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_left": {
+     "gap": 0.0094,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_right": {
+     "gap": 0.0094,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_top": {
+     "gap": 0.0296,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_border_bottom": {
+     "gap": 0.0297,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_colour_ciede2000": {
+     "value": 2.05,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_colour_cie76": {
+     "value": 2.9,
+     "pass": true,
+     "status": "pass"
+    },
+    "rsf_badge": {
+     "gap": 0.0095,
+     "pass": true,
+     "status": "pass"
+    },
+    "october_title": {
+     "gap": null,
+     "pass": null,
+     "status": "absent in both"
+    },
+    "base_colour_ciede2000": {
+     "value": 2.12,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour_cie76": {
+     "value": 2.53,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour": {
+     "real_hex": "#1C2B28",
+     "v5_hex": "#152824"
+    }
+   },
+   "pair_gaps": {
+    "sudan_label_to_sudan_centroid": {
+     "real": {
+      "dx_ratio": -0.0044,
+      "dy_ratio": 0.0014,
+      "dist_ratio": 0.0046
+     },
+     "v5": {
+      "dx_ratio": -0.0031,
+      "dy_ratio": 0.0007,
+      "dist_ratio": 0.0032
+     },
+     "gap": {
+      "gap": 0.0014,
+      "pass": true,
+      "status": "pass"
+     }
+    },
+    "el_fasher_label_to_rsf_corner": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    },
+    "el_fasher_dot_to_label": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    }
+   },
+   "layer_pass": false,
+   "pred_v1_numbers_pass": false,
+   "pair_verdict": "FAIL"
+  },
+  "5": {
+   "real_file": "verify-seg4/evidence/work/real-5s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-5s.png",
+   "existing": {
+    "ssim": 0.7811,
+    "psnr_db": 20.32,
+    "lpips": 0.6542,
+    "worst_delta_e_ciede2000": 2.53,
+    "worst_area": "water",
+    "delta_e_cie76_by_area": {
+     "sudan": 3.3,
+     "land": 2.89,
+     "water": 3.27,
+     "rsf": 5.38
+    },
+    "worst_delta_e_cie76": 5.38
+   },
+   "layers": {
+    "sudan": {
+     "real": {
+      "centroid": [
+       990.0,
+       497.9
+      ],
+      "centroid_ratio": [
+       0.5156,
+       0.461
+      ],
+      "bbox": [
+       674,
+       280,
+       1282,
+       782
+      ],
+      "bbox_ratio": [
+       0.351,
+       0.2593,
+       0.3167,
+       0.4648
+      ],
+      "area_ratio": 0.0934,
+      "border_ratio": {
+       "left": 0.351,
+       "right": 0.3323,
+       "top": 0.2593,
+       "bottom": 0.2759
+      },
+      "present": true,
+      "median_hex": "#143C34",
+      "pixels": 193736,
+      "flags": []
+     },
+     "v5": {
+      "centroid": [
+       987.3,
+       491.9
+      ],
+      "centroid_ratio": [
+       0.5142,
+       0.4554
+      ],
+      "bbox": [
+       688,
+       304,
+       1264,
+       742
+      ],
+      "bbox_ratio": [
+       0.3583,
+       0.2815,
+       0.3,
+       0.4056
+      ],
+      "area_ratio": 0.0594,
+      "border_ratio": {
+       "left": 0.3583,
+       "right": 0.3417,
+       "top": 0.2815,
+       "bottom": 0.313
+      },
+      "present": true,
+      "median_hex": "#0D3630",
+      "pixels": 123196,
+      "flags": []
+     }
+    },
+    "base": {
+     "real": {
+      "centroid": [
+       943.8,
+       526.8
+      ],
+      "centroid_ratio": [
+       0.4915,
+       0.4877
+      ],
+      "bbox": [
+       0,
+       2,
+       1920,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0019,
+       1.0,
+       0.9981
+      ],
+      "area_ratio": 0.8298,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0,
+       "top": 0.0019,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#1C2B28",
+      "pixels": 1720764,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     },
+     "v5": {
+      "centroid": [
+       886.8,
+       535.7
+      ],
+      "centroid_ratio": [
+       0.4619,
+       0.496
+      ],
+      "bbox": [
+       0,
+       0,
+       1900,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0,
+       0.9896,
+       1.0
+      ],
+      "area_ratio": 0.4516,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0104,
+       "top": 0.0,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#152824",
+      "pixels": 936384,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     }
+    },
+    "rsf": {
+     "real": {
+      "centroid": [
+       785.9,
+       633.8
+      ],
+      "centroid_ratio": [
+       0.4093,
+       0.5868
+      ],
+      "bbox": [
+       732,
+       594,
+       870,
+       742
+      ],
+      "bbox_ratio": [
+       0.3812,
+       0.55,
+       0.0719,
+       0.137
+      ],
+      "area_ratio": 0.0056,
+      "border_ratio": {
+       "left": 0.3812,
+       "right": 0.5469,
+       "top": 0.55,
+       "bottom": 0.313
+      },
+      "present": true,
+      "median_hex": "#CC4726",
+      "pixels": 11512,
+      "flags": [],
+      "discriminator": {
+       "candidates": 3,
+       "fill": 0.564,
+       "aspect": 0.932,
+       "union_bbox": [
+        732,
+        594,
+        870,
+        742
+       ]
+      }
+     },
+     "v5": {
+      "centroid": [
+       798.2,
+       662.8
+      ],
+      "centroid_ratio": [
+       0.4157,
+       0.6137
+      ],
+      "bbox": [
+       728,
+       592,
+       870,
+       740
+      ],
+      "bbox_ratio": [
+       0.3792,
+       0.5481,
+       0.074,
+       0.137
+      ],
+      "area_ratio": 0.0096,
+      "border_ratio": {
+       "left": 0.3792,
+       "right": 0.5469,
+       "top": 0.5481,
+       "bottom": 0.3148
+      },
+      "present": true,
+      "median_hex": "#CB4524",
+      "pixels": 20000,
+      "flags": [],
+      "discriminator": {
+       "candidates": 1,
+       "fill": 0.952,
+       "aspect": 0.959,
+       "union_bbox": [
+        728,
+        592,
+        870,
+        740
+       ]
+      }
+     }
+    },
+    "october": {
+     "real": {
+      "centroid": [
+       894.0,
+       943.0
+      ],
+      "centroid_ratio": [
+       0.4656,
+       0.8731
+      ],
+      "bbox": [
+       894,
+       932,
+       896,
+       956
+      ],
+      "bbox_ratio": [
+       0.4656,
+       0.863,
+       0.001,
+       0.0222
+      ],
+      "area_ratio": 0.0,
+      "border_ratio": {
+       "left": 0.4656,
+       "right": 0.5333,
+       "top": 0.863,
+       "bottom": 0.1148
+      },
+      "present": true,
+      "median_hex": "#AAAFAE",
+      "pixels": 48,
+      "flags": [],
+      "components": []
+     },
+     "v5": {
+      "centroid": [
+       403.0,
+       998.0
+      ],
+      "centroid_ratio": [
+       0.2099,
+       0.9241
+      ],
+      "bbox": [
+       392,
+       998,
+       416,
+       1000
+      ],
+      "bbox_ratio": [
+       0.2042,
+       0.9241,
+       0.0125,
+       0.0019
+      ],
+      "area_ratio": 0.0,
+      "border_ratio": {
+       "left": 0.2042,
+       "right": 0.7833,
+       "top": 0.9241,
+       "bottom": 0.0741
+      },
+      "present": true,
+      "median_hex": "#A0B3B0",
+      "pixels": 48,
+      "flags": [],
+      "components": []
+     }
+    },
+    "v5_text_clusters": [
+     {
+      "bbox": [
+       776,
+       706,
+       824,
+       724
+      ],
+      "centroid": [
+       798.7,
+       713.1
+      ],
+      "n_components": 3,
+      "pixels": 464
+     },
+     {
+      "bbox": [
+       896,
+       490,
+       1052,
+       520
+      ],
+      "centroid": [
+       971.6,
+       503.8
+      ],
+      "n_components": 5,
+      "pixels": 2116
+     }
+    ],
+    "v5_labels_identified": {
+     "sudan": [
+      971.6,
+      503.8
+     ],
+     "el_fasher": null,
+     "flags": []
+    }
+   },
+   "checks": {
+    "sudan_centroid": {
+     "gap": 0.0058,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_width": {
+     "gap": 0.0167,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_left": {
+     "gap": 0.0073,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_right": {
+     "gap": 0.0094,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_top": {
+     "gap": 0.0222,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_border_bottom": {
+     "gap": 0.0371,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_colour_ciede2000": {
+     "value": 2.05,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_colour_cie76": {
+     "value": 2.9,
+     "pass": true,
+     "status": "pass"
+    },
+    "rsf_badge": {
+     "gap": 0.0277,
+     "pass": false,
+     "status": "fail"
+    },
+    "october_title": {
+     "gap": null,
+     "pass": null,
+     "status": "absent in both"
+    },
+    "base_colour_ciede2000": {
+     "value": 2.12,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour_cie76": {
+     "value": 2.53,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour": {
+     "real_hex": "#1C2B28",
+     "v5_hex": "#152824"
+    }
+   },
+   "pair_gaps": {
+    "sudan_label_to_sudan_centroid": {
+     "real": {
+      "dx_ratio": 0.0078,
+      "dy_ratio": -0.0027,
+      "dist_ratio": 0.0083
+     },
+     "v5": {
+      "dx_ratio": 0.0082,
+      "dy_ratio": -0.0062,
+      "dist_ratio": 0.0103
+     },
+     "gap": {
+      "gap": 0.002,
+      "pass": true,
+      "status": "pass"
+     }
+    },
+    "el_fasher_label_to_rsf_corner": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    },
+    "el_fasher_dot_to_label": {
+     "real": null,
+     "v5": null,
+     "note": "EL FASHER not visible yet"
+    }
+   },
+   "layer_pass": false,
+   "pred_v1_numbers_pass": false,
+   "pair_verdict": "FAIL"
+  },
+  "7": {
+   "real_file": "verify-seg4/evidence/work/real-7s.png",
+   "v5_file": "verify-seg4/evidence/work/v5-7s.png",
+   "existing": {
+    "ssim": 0.7851,
+    "psnr_db": 20.11,
+    "lpips": 0.6452,
+    "worst_delta_e_ciede2000": 2.65,
+    "worst_area": "water",
+    "delta_e_cie76_by_area": {
+     "sudan": 3.3,
+     "land": 3.27,
+     "water": 2.97,
+     "rsf": 1.88
+    },
+    "worst_delta_e_cie76": 3.3
+   },
+   "layers": {
+    "sudan": {
+     "real": {
+      "centroid": [
+       994.2,
+       528.3
+      ],
+      "centroid_ratio": [
+       0.5178,
+       0.4892
+      ],
+      "bbox": [
+       656,
+       270,
+       1326,
+       838
+      ],
+      "bbox_ratio": [
+       0.3417,
+       0.25,
+       0.349,
+       0.5259
+      ],
+      "area_ratio": 0.1225,
+      "border_ratio": {
+       "left": 0.3417,
+       "right": 0.3094,
+       "top": 0.25,
+       "bottom": 0.2241
+      },
+      "present": true,
+      "median_hex": "#143C34",
+      "pixels": 254072,
+      "flags": []
+     },
+     "v5": {
+      "centroid": [
+       994.4,
+       522.0
+      ],
+      "centroid_ratio": [
+       0.5179,
+       0.4833
+      ],
+      "bbox": [
+       684,
+       306,
+       1306,
+       790
+      ],
+      "bbox_ratio": [
+       0.3563,
+       0.2833,
+       0.324,
+       0.4481
+      ],
+      "area_ratio": 0.0758,
+      "border_ratio": {
+       "left": 0.3563,
+       "right": 0.3198,
+       "top": 0.2833,
+       "bottom": 0.2685
+      },
+      "present": true,
+      "median_hex": "#0D3630",
+      "pixels": 157092,
+      "flags": []
+     }
+    },
+    "base": {
+     "real": {
+      "centroid": [
+       937.7,
+       525.7
+      ],
+      "centroid_ratio": [
+       0.4884,
+       0.4867
+      ],
+      "bbox": [
+       0,
+       2,
+       1920,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0019,
+       1.0,
+       0.9981
+      ],
+      "area_ratio": 0.7873,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0,
+       "top": 0.0019,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#1C2B28",
+      "pixels": 1632484,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     },
+     "v5": {
+      "centroid": [
+       899.2,
+       537.6
+      ],
+      "centroid_ratio": [
+       0.4683,
+       0.4978
+      ],
+      "bbox": [
+       0,
+       0,
+       1920,
+       1080
+      ],
+      "bbox_ratio": [
+       0.0,
+       0.0,
+       1.0,
+       1.0
+      ],
+      "area_ratio": 0.4753,
+      "border_ratio": {
+       "left": 0.0,
+       "right": 0.0,
+       "top": 0.0,
+       "bottom": 0.0
+      },
+      "present": true,
+      "median_hex": "#152824",
+      "pixels": 985620,
+      "flags": [
+       "FRAME_FILLING"
+      ]
+     }
+    },
+    "rsf": {
+     "real": {
+      "centroid": [
+       690.8,
+       719.0
+      ],
+      "centroid_ratio": [
+       0.3598,
+       0.6657
+      ],
+      "bbox": [
+       618,
+       652,
+       774,
+       818
+      ],
+      "bbox_ratio": [
+       0.3219,
+       0.6037,
+       0.0813,
+       0.1537
+      ],
+      "area_ratio": 0.008,
+      "border_ratio": {
+       "left": 0.3219,
+       "right": 0.5969,
+       "top": 0.6037,
+       "bottom": 0.2426
+      },
+      "present": true,
+      "median_hex": "#CD4726",
+      "pixels": 16640,
+      "flags": [],
+      "discriminator": {
+       "candidates": 2,
+       "fill": 0.643,
+       "aspect": 0.94,
+       "union_bbox": [
+        618,
+        652,
+        774,
+        818
+       ]
+      }
+     },
+     "v5": {
+      "centroid": [
+       692.0,
+       728.8
+      ],
+      "centroid_ratio": [
+       0.3604,
+       0.6748
+      ],
+      "bbox": [
+       614,
+       650,
+       772,
+       814
+      ],
+      "bbox_ratio": [
+       0.3198,
+       0.6019,
+       0.0823,
+       0.1519
+      ],
+      "area_ratio": 0.012,
+      "border_ratio": {
+       "left": 0.3198,
+       "right": 0.5979,
+       "top": 0.6019,
+       "bottom": 0.2463
+      },
+      "present": true,
+      "median_hex": "#CB4524",
+      "pixels": 24848,
+      "flags": [],
+      "discriminator": {
+       "candidates": 1,
+       "fill": 0.959,
+       "aspect": 0.963,
+       "union_bbox": [
+        614,
+        650,
+        772,
+        814
+       ]
+      }
+     }
+    },
+    "october": {
+     "real": {
+      "centroid": [
+       894.0,
+       943.0
+      ],
+      "centroid_ratio": [
+       0.4656,
+       0.8731
+      ],
+      "bbox": [
+       894,
+       932,
+       896,
+       956
+      ],
+      "bbox_ratio": [
+       0.4656,
+       0.863,
+       0.001,
+       0.0222
+      ],
+      "area_ratio": 0.0,
+      "border_ratio": {
+       "left": 0.4656,
+       "right": 0.5333,
+       "top": 0.863,
+       "bottom": 0.1148
+      },
+      "present": true,
+      "median_hex": "#A8B0AE",
+      "pixels": 48,
+      "flags": [],
+      "components": []
+     },
+     "v5": {
+      "centroid": [
+       750.0,
+       509.0
+      ],
+      "centroid_ratio": [
+       0.3906,
+       0.4713
+      ],
+      "bbox": [
+       750,
+       474,
+       752,
+       546
+      ],
+      "bbox_ratio": [
+       0.3906,
+       0.4389,
+       0.001,
+       0.0667
+      ],
+      "area_ratio": 0.0001,
+      "border_ratio": {
+       "left": 0.3906,
+       "right": 0.6083,
+       "top": 0.4389,
+       "bottom": 0.4944
+      },
+      "present": true,
+      "median_hex": "#A0B2AF",
+      "pixels": 140,
+      "flags": [],
+      "components": [
+       {
+        "n": 72,
+        "bbox": [
+         750,
+         510,
+         752,
+         546
+        ],
+        "centroid": [
+         750.0,
+         527.0
+        ]
+       },
+       {
+        "n": 68,
+        "bbox": [
+         750,
+         474,
+         752,
+         508
+        ],
+        "centroid": [
+         750.0,
+         490.0
+        ]
+       }
+      ]
+     }
+    },
+    "v5_text_clusters": [
+     {
+      "bbox": [
+       668,
+       776,
+       720,
+       796
+      ],
+      "centroid": [
+       692.8,
+       784.5
+      ],
+      "n_components": 3,
+      "pixels": 504
+     },
+     {
+      "bbox": [
+       782,
+       626,
+       916,
+       656
+      ],
+      "centroid": [
+       849.2,
+       639.9
+      ],
+      "n_components": 8,
+      "pixels": 2288
+     },
+     {
+      "bbox": [
+       898,
+       512,
+       1070,
+       546
+      ],
+      "centroid": [
+       980.4,
+       529.3
+      ],
+      "n_components": 5,
+      "pixels": 2748
+     }
+    ],
+    "v5_labels_identified": {
+     "sudan": [
+      980.4,
+      529.3
+     ],
+     "el_fasher": [
+      849.2,
+      639.9
+     ],
+     "flags": []
+    }
+   },
+   "checks": {
+    "sudan_centroid": {
+     "gap": 0.0059,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_width": {
+     "gap": 0.025,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_border_left": {
+     "gap": 0.0146,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_right": {
+     "gap": 0.0104,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_border_top": {
+     "gap": 0.0333,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_border_bottom": {
+     "gap": 0.0444,
+     "pass": false,
+     "status": "fail"
+    },
+    "sudan_colour_ciede2000": {
+     "value": 2.05,
+     "pass": true,
+     "status": "pass"
+    },
+    "sudan_colour_cie76": {
+     "value": 2.9,
+     "pass": true,
+     "status": "pass"
+    },
+    "rsf_badge": {
+     "gap": 0.0091,
+     "pass": true,
+     "status": "pass"
+    },
+    "october_title": {
+     "gap": null,
+     "pass": null,
+     "status": "absent in both"
+    },
+    "base_colour_ciede2000": {
+     "value": 2.12,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour_cie76": {
+     "value": 2.53,
+     "pass": true,
+     "status": "pass"
+    },
+    "base_colour": {
+     "real_hex": "#1C2B28",
+     "v5_hex": "#152824"
+    }
+   },
+   "pair_gaps": {
+    "sudan_label_to_sudan_centroid": {
+     "real": {
+      "dx_ratio": 0.0053,
+      "dy_ratio": 0.0002,
+      "dist_ratio": 0.0053
+     },
+     "v5": {
+      "dx_ratio": 0.0073,
+      "dy_ratio": -0.0038,
+      "dist_ratio": 0.0082
+     },
+     "gap": {
+      "gap": 0.0029,
+      "pass": true,
+      "status": "pass"
+     }
+    },
+    "el_fasher_label_to_rsf_corner": {
+     "real": {
+      "dx_ratio": -0.0401,
+      "dy_ratio": 0.0057,
+      "dist_ratio": 0.0405
+     },
+     "v5": {
+      "dx_ratio": -0.0402,
+      "dy_ratio": 0.0052,
+      "dist_ratio": 0.0405
+     },
+     "gap": {
+      "gap": 0.0,
+      "pass": true,
+      "status": "pass"
+     }
+    },
+    "el_fasher_dot_to_label": {
+     "real": {
+      "dx_ratio": 0.0349,
+      "dy_ratio": -0.0042,
+      "dist_ratio": 0.0351
+     },
+     "v5": {
+      "dx_ratio": 0.0316,
+      "dy_ratio": -0.0004,
+      "dist_ratio": 0.0316
+     },
+     "gap": {
+      "gap": 0.0035,
+      "pass": true,
+      "status": "pass"
+     }
+    }
+   },
+   "layer_pass": false,
+   "pred_v1_numbers_pass": false,
+   "pair_verdict": "FAIL"
+  }
+ },
+ "zoom_curve": [
+  {
+   "second": 1,
+   "real_ratio": 0.0781,
+   "real_source": "trace",
+   "v5_ratio": 0.0667,
+   "v5_source": "segmented Sudan region",
+   "gap": 0.0114
+  },
+  {
+   "second": 4,
+   "real_ratio": 0.2792,
+   "real_source": "trace",
+   "v5_ratio": 0.2687,
+   "v5_source": "segmented Sudan region",
+   "gap": 0.0105
+  },
+  {
+   "second": 5,
+   "real_ratio": 0.3078,
+   "real_source": "trace",
+   "v5_ratio": 0.3,
+   "v5_source": "segmented Sudan region",
+   "gap": 0.0078
+  },
+  {
+   "second": 7,
+   "real_ratio": 0.3391,
+   "real_source": "trace",
+   "v5_ratio": 0.324,
+   "v5_source": "segmented Sudan region",
+   "gap": 0.0151
+  }
+ ],
+ "composite": {
+  "mean_ssim": 0.7727,
+  "mean_psnr_db": 19.63,
+  "mean_lpips": 0.6501,
+  "layer_pass": false,
+  "overall_verdict": "FAIL, 0 of 4 pairs pass pred-v1 Seg4."
+ },
+ "worst_gaps": [
+  {
+   "gap": 0.0444,
+   "second": 7,
+   "check": "sudan_border_bottom"
+  },
+  {
+   "gap": 0.0427,
+   "second": 1,
+   "check": "october_title"
+  },
+  {
+   "gap": 0.0371,
+   "second": 5,
+   "check": "sudan_border_bottom"
+  },
+  {
+   "gap": 0.0333,
+   "second": 7,
+   "check": "sudan_border_top"
+  },
+  {
+   "gap": 0.0297,
+   "second": 4,
+   "check": "sudan_border_bottom"
+  }
+ ],
+ "wall_time_s": 7.7,
+ "limits": [
+  "4 paired seconds only; no 240-frame verdict is possible from stills.",
+  "Real frames are screenshots of a compressed YouTube stream, not studio frames. They carry a caption bar and player control bar at the bottom, an SP channel watermark at bottom-right, and a mouse cursor in some frames. None of that is video content, and all of it lowers SSIM, PSNR and LPIPS against the clean v5 render.",
+  "Real frames were stretched from 1.845:1 to 16:9 (about 4% vertical) by the resize to 1920x1080.",
+  "Sub-second timing uncertainty is about +/-0.5s: YouTube timecodes truncate to whole seconds, while v5 frames are exact (frames 24/96/120/168 at 24 fps).",
+  "Delta E sample points are the trace points on both sides, because v5 places elements at the traced positions. Land and water are hard to separate in both videos at this compression.",
+  "The 1s water sample fell on land; treat that row as indicative only.",
+  "The full checker was not run: it needs a reference MP4, which does not exist, and the segment config has ref null. No fake reference video was built.",
+  "v5 Sudan is colour-separable from v5 land, so the zoom and Sudan layout numbers use the true segmented Sudan width.",
+  "Real y positions carry about +/-15 px uncertainty from the 1.845:1 to 16:9 stretch (0.0139 as a ratio), inside the 0.02 tolerances.",
+  "SUDAN label at 0:01 is a 35x6 px blob; label matching there is not reliable.",
+  "v5 title and EL FASHER fonts are inferred from width/cap ratios, not identified in the trace; a width mismatch is a font guess, not a layout gap."
+ ]
+}

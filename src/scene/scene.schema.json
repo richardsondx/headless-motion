@@ -40,10 +40,16 @@
           "default": 24
         },
         "width": {
-          "const": 1920
+          "enum": [
+            1920,
+            1080
+          ]
         },
         "height": {
-          "const": 1080
+          "enum": [
+            1080,
+            1920
+          ]
         },
         "duration": {
           "type": "integer",
@@ -62,7 +68,41 @@
         "notes": {
           "description": "free text, exempt from additionalProperties"
         }
-      }
+      },
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "width": {
+                  "const": 1920
+                },
+                "height": {
+                  "const": 1080
+                }
+              },
+              "required": [
+                "width",
+                "height"
+              ]
+            },
+            {
+              "properties": {
+                "width": {
+                  "const": 1080
+                },
+                "height": {
+                  "const": 1920
+                }
+              },
+              "required": [
+                "width",
+                "height"
+              ]
+            }
+          ]
+        }
+      ]
     },
     "fonts": {
       "type": "array",
@@ -97,6 +137,35 @@
       "type": "object",
       "propertyNames": {
         "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+      },
+      "properties": {
+        "ground": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hex"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "color"
+              ],
+              "properties": {
+                "color": {
+                  "$ref": "#/$defs/hex"
+                },
+                "source": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "reference frame number the colour was measured on"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/gradient"
+            }
+          ]
+        }
       },
       "additionalProperties": {
         "anyOf": [
@@ -159,6 +228,137 @@
     }
   },
   "$defs": {
+    "gradientStop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "color",
+        "at"
+      ],
+      "properties": {
+        "color": {
+          "$ref": "#/$defs/colorRef"
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "alpha": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        }
+      }
+    },
+    "gradient": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "angle",
+            "stops"
+          ],
+          "properties": {
+            "type": {
+              "const": "linear"
+            },
+            "angle": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 360,
+              "description": "degrees, CSS convention (0 = to top, 90 = to right, 180 = to bottom)"
+            },
+            "stops": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/gradientStop"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "cx",
+            "cy",
+            "r",
+            "stops"
+          ],
+          "properties": {
+            "type": {
+              "const": "radial"
+            },
+            "cx": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "cy": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "r": {
+              "type": "number",
+              "minimum": 0,
+              "description": "fraction of the shape box"
+            },
+            "stops": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/gradientStop"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "glow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "color",
+        "radius",
+        "intensity"
+      ],
+      "properties": {
+        "color": {
+          "$ref": "#/$defs/colorRef"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "description": "px"
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "soft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "radius"
+      ],
+      "properties": {
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "description": "px"
+        }
+      }
+    },
     "id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._-]+$"
@@ -289,6 +489,14 @@
                     "items": {
                       "type": "number"
                     }
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/$defs/pathPoint"
+                    },
+                    "description": "points list for a props.points morph track"
                   }
                 ]
               },
@@ -321,7 +529,8 @@
             "shape",
             "image",
             "map",
-            "chart"
+            "chart",
+            "particle"
           ]
         },
         "parent": {
@@ -374,6 +583,24 @@
             "scale": {
               "type": "number",
               "default": 1
+            },
+            "scaleX": {
+              "type": "number",
+              "default": 1,
+              "description": "non-uniform scale in x. When scaleX differs from scaleY, the shape squashes or stretches. Falls back to scale when absent."
+            },
+            "scaleY": {
+              "type": "number",
+              "default": 1,
+              "description": "non-uniform scale in y. When scaleX differs from scaleY, the shape squashes or stretches. Falls back to scale when absent."
+            },
+            "anchorX": {
+              "type": "number",
+              "description": "box-local px x of the scale anchor. Absent means the box centre."
+            },
+            "anchorY": {
+              "type": "number",
+              "description": "box-local px y of the scale anchor. Absent means the box centre."
             },
             "rotation": {
               "type": "number",
@@ -457,6 +684,22 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "particle"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/$defs/particleProps"
+              }
+            }
+          }
         }
       ]
     },
@@ -528,6 +771,62 @@
         }
       }
     },
+    "xy": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number"
+      },
+      "description": "box-local px [x, y]"
+    },
+    "pathPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "anchor",
+        "command"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "anchor": {
+          "$ref": "#/$defs/xy"
+        },
+        "in": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/xy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "in-handle, box-local px. Null means the handle sits on the anchor."
+        },
+        "out": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/xy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "out-handle, box-local px. Null means the handle sits on the anchor."
+        },
+        "command": {
+          "enum": [
+            "line",
+            "cubic",
+            "smooth"
+          ],
+          "description": "segment that arrives at this point from the previous point. The first point uses M and its command is ignored."
+        }
+      }
+    },
     "shapeProps": {
       "type": "object",
       "additionalProperties": false,
@@ -545,8 +844,21 @@
           ]
         },
         "fill": {
-          "type": "string",
-          "pattern": "^(none|#[0-9a-fA-F]{6}|[A-Za-z][A-Za-z0-9_-]*)$"
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(none|#[0-9a-fA-F]{6}|[A-Za-z][A-Za-z0-9_-]*)$"
+            },
+            {
+              "$ref": "#/$defs/gradient"
+            }
+          ]
+        },
+        "glow": {
+          "$ref": "#/$defs/glow"
+        },
+        "soft": {
+          "$ref": "#/$defs/soft"
         },
         "stroke": {
           "type": "object",
@@ -590,6 +902,44 @@
         "d": {
           "type": "string",
           "description": "path: SVG path data. polygon: 'x,y x,y ...'. Both in box-local px."
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/pathPoint"
+          },
+          "description": "path as data: named nodes. The renderer compiles this list to d. When both points and d are present, points wins. d stays as a fallback for traced scenes."
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "append Z to the d compiled from points. Only used with points."
+        },
+        "deform": {
+          "type": "array",
+          "description": "vertex deform: move a named subset of points by dx, dy px. The evaluator adds the offset to the named point's anchor and handles. Points not named stay unchanged. An unknown id fails loudly.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "dx",
+              "dy"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "dx": {
+                "type": "number",
+                "description": "move in x, box-local px"
+              },
+              "dy": {
+                "type": "number",
+                "description": "move in y, box-local px"
+              }
+            }
+          }
         }
       }
     },
@@ -610,6 +960,87 @@
             "contain",
             "none"
           ]
+        }
+      }
+    },
+    "particleProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "size",
+        "speed",
+        "direction",
+        "lifetime",
+        "shape",
+        "area"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "number of particles in the emitter"
+        },
+        "size": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "particle diameter in px"
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "description": "travel speed in px per second"
+        },
+        "direction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "description": "travel direction in degrees, 0 = right, 90 = down, 270 = up"
+        },
+        "lifetime": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "particle lifetime in frames"
+        },
+        "shape": {
+          "enum": [
+            "circle",
+            "star",
+            "bubble"
+          ],
+          "description": "star maps to a computed polygon downstream (existing SVG path kind), not a new shape kind"
+        },
+        "area": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "properties": {
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "description": "emitter area left in scene px"
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "description": "emitter area top in scene px"
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "emitter area width in scene px"
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "emitter area height in scene px"
+            }
+          }
         }
       }
     }

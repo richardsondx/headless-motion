@@ -13,7 +13,7 @@ const HARNESS_FILES = ["render.mjs", "cli.mjs", "retry.mjs"];
 const RAF_FILES = ["runtime.mjs"];
 
 const word = (w) => new RegExp(`\\b${w}\\b`);
-const RULES = [
+export const RULES = [
   { id: "Date", re: word("Date"), skip: HARNESS_FILES },
   { id: "performance.now", re: /\bperformance\s*\.\s*now\b/, skip: HARNESS_FILES },
   { id: "Math.random", re: /\bMath\s*\.\s*random\b/ },

@@ -1,0 +1,132 @@
+{
+  "events": [
+    {
+      "f": 24,
+      "id": "foam-rises",
+      "note": "bubbles and sparkles appear at 1 s"
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Montserrat",
+      "src": "fonts/Montserrat-Bold.ttf",
+      "weight": 700
+    }
+  ],
+  "meta": {
+    "duration": 120,
+    "fps": 24,
+    "height": 1080,
+    "id": "particle-sample",
+    "notes": "Particle sample: foam bubbles rising over the mug (1-2 s) and star sparkles around the face (1-2 s), Kurzgesagt 'Alcohol is AMAZING' first 5 seconds. Star shape maps to a computed polygon downstream (D4).",
+    "register": "dark",
+    "seed": 42,
+    "width": 1920
+  },
+  "nodes": [
+    {
+      "box": {
+        "h": 400,
+        "w": 300,
+        "x": 900,
+        "y": 500
+      },
+      "id": "bubbles",
+      "parent": null,
+      "props": {
+        "area": {
+          "h": 400,
+          "w": 300,
+          "x": 900,
+          "y": 500
+        },
+        "count": 14,
+        "direction": 270,
+        "lifetime": 48,
+        "shape": "bubble",
+        "size": 18,
+        "speed": 40
+      },
+      "type": "particle",
+      "visible": {
+        "in": 24,
+        "out": 48
+      },
+      "z": 3
+    },
+    {
+      "box": {
+        "h": 300,
+        "w": 400,
+        "x": 700,
+        "y": 200
+      },
+      "id": "sparkles",
+      "parent": null,
+      "props": {
+        "area": {
+          "h": 300,
+          "w": 400,
+          "x": 700,
+          "y": 200
+        },
+        "count": 12,
+        "direction": 0,
+        "lifetime": 24,
+        "shape": "star",
+        "size": 10,
+        "speed": 0
+      },
+      "type": "particle",
+      "visible": {
+        "in": 24,
+        "out": 48
+      },
+      "z": 4
+    }
+  ],
+  "palette": {
+    "foam": "#ffffff",
+    "ground": "#101820",
+    "ink": "#f4f1ea",
+    "spark": "#ffd76a"
+  },
+  "schema": "hme.scene/1.0",
+  "timeline": [
+    {
+      "keys": [
+        {
+          "f": 24,
+          "v": 8
+        },
+        {
+          "ease": "easeInOutCubic",
+          "f": 48,
+          "v": 14
+        }
+      ],
+      "node": "bubbles",
+      "prop": "props.count"
+    },
+    {
+      "keys": [
+        {
+          "f": 24,
+          "v": 0
+        },
+        {
+          "ease": "easeOutSine",
+          "f": 30,
+          "v": 1
+        },
+        {
+          "ease": "easeInSine",
+          "f": 48,
+          "v": 0
+        }
+      ],
+      "node": "sparkles",
+      "prop": "transform.opacity"
+    }
+  ]
+}

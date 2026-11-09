@@ -1,0 +1,359 @@
+{
+  "pair": "stale full-192 before control (ref vs v5 pre-fix)",
+  "sampled_frames": [
+    0,
+    12,
+    24,
+    36,
+    48,
+    60,
+    72,
+    84,
+    96,
+    108,
+    120,
+    132,
+    144,
+    156,
+    168,
+    180
+  ],
+  "rows": [
+    {
+      "frame": 0,
+      "second": 0,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 12,
+      "second": 0.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 24,
+      "second": 1,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 36,
+      "second": 1.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 48,
+      "second": 2,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 60,
+      "second": 2.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 72,
+      "second": 3,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 84,
+      "second": 3.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": false,
+      "badge_present_ours": false,
+      "dark_ref": null,
+      "dark_ours": null,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": null,
+      "corner_ours": null
+    },
+    {
+      "frame": 96,
+      "second": 4,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 987,
+      "dark_ours": 3,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": {
+        "badge_px": 2690,
+        "ink_px": 0,
+        "dot_px": 0
+      },
+      "corner_ours": {
+        "badge_px": 3600,
+        "ink_px": 907,
+        "dot_px": 0
+      }
+    },
+    {
+      "frame": 108,
+      "second": 4.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1204,
+      "dark_ours": 6,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": {
+        "badge_px": 2669,
+        "ink_px": 886,
+        "dot_px": 0
+      },
+      "corner_ours": {
+        "badge_px": 3582,
+        "ink_px": 500,
+        "dot_px": 0
+      }
+    },
+    {
+      "frame": 120,
+      "second": 5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1203,
+      "dark_ours": 7,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": {
+        "badge_px": 2618,
+        "ink_px": 963,
+        "dot_px": 0
+      },
+      "corner_ours": {
+        "badge_px": 3600,
+        "ink_px": 0,
+        "dot_px": 0
+      }
+    },
+    {
+      "frame": 132,
+      "second": 5.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1305,
+      "dark_ours": 1,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": {
+        "badge_px": 2757,
+        "ink_px": 124,
+        "dot_px": 0
+      },
+      "corner_ours": {
+        "badge_px": 3581,
+        "ink_px": 0,
+        "dot_px": 0
+      }
+    },
+    {
+      "frame": 144,
+      "second": 6,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1629,
+      "dark_ours": 4,
+      "dot_merged_ref": null,
+      "dot_merged_ours": null,
+      "corner_ref": {
+        "badge_px": 2721,
+        "ink_px": 2,
+        "dot_px": 0
+      },
+      "corner_ours": {
+        "badge_px": 3384,
+        "ink_px": 0,
+        "dot_px": 0
+      }
+    },
+    {
+      "frame": 156,
+      "second": 6.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1760,
+      "dark_ours": 129,
+      "dot_merged_ref": false,
+      "dot_merged_ours": true,
+      "corner_ref": {
+        "badge_px": 2757,
+        "ink_px": 139,
+        "dot_px": 63
+      },
+      "corner_ours": {
+        "badge_px": 3476,
+        "ink_px": 802,
+        "dot_px": 351
+      }
+    },
+    {
+      "frame": 168,
+      "second": 7,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1813,
+      "dark_ours": 1,
+      "dot_merged_ref": false,
+      "dot_merged_ours": true,
+      "corner_ref": {
+        "badge_px": 2825,
+        "ink_px": 145,
+        "dot_px": 47
+      },
+      "corner_ours": {
+        "badge_px": 3596,
+        "ink_px": 779,
+        "dot_px": 351
+      }
+    },
+    {
+      "frame": 180,
+      "second": 7.5,
+      "verdict": "FAIL",
+      "winner_ref": null,
+      "winner_ours": null,
+      "overlap_px_ref": 0,
+      "overlap_px_ours": 0,
+      "badge_present_ref": true,
+      "badge_present_ours": true,
+      "dark_ref": 1832,
+      "dark_ours": 1,
+      "dot_merged_ref": false,
+      "dot_merged_ours": true,
+      "corner_ref": {
+        "badge_px": 2768,
+        "ink_px": 159,
+        "dot_px": 40
+      },
+      "corner_ours": {
+        "badge_px": 3596,
+        "ink_px": 778,
+        "dot_px": 351
+      }
+    }
+  ]
+}

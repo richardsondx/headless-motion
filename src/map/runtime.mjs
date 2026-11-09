@@ -97,18 +97,41 @@
     svg.appendChild(vig);
     vigEl = vig;
   }
-  // One main path and one casing path per country, built once and reused
-  // every frame by drawMap. (Restored in cycle 1: the grain replacement
-  // accidentally deleted this block, which drew the map.)
+  // Layer cache: country geometry is drawn once at the reference camera
+  // (compile-time, widest view) inside one group. Per frame drawMap only
+  // sets an affine transform on that group (cameraMatrix, exact: the
+  // projection is affine) instead of re-projecting every vertex. The
+  // group is never re-painted for a transform-only change; fills and
+  // strokes update only when they change. vector-effect keeps stroke
+  // widths in screen px under the transform. Off when
+  // window.__hmeMapData.mapCache is false (HME_MAP_CACHE=0 or a singular
+  // matrix), in which case drawMap re-projects every frame as before.
+  const cacheOn = Boolean(data.mapCache && data.refCam);
+  const refCam = data.refCam || null;
+  const baseG = document.createElementNS(NS, "g");
+  baseG.setAttribute("id", "hme-map-base");
+  svg.appendChild(baseG);
   const paths = new Map();
   for (const feature of geo) {
     const iso = feature.properties.ISO_A3;
     const casing = document.createElementNS(NS, "path");
     const main = document.createElementNS(NS, "path");
-    svg.appendChild(casing);
-    svg.appendChild(main);
+    casing.setAttribute("vector-effect", "non-scaling-stroke");
+    main.setAttribute("vector-effect", "non-scaling-stroke");
+    casing.setAttribute("fill", "none");
+    casing.setAttribute("stroke", register === "dark" ? "#182022" : "#14213d");
+    baseG.appendChild(casing);
+    baseG.appendChild(main);
     paths.set(iso, { feature, main, casing });
   }
+  if (cacheOn) {
+    for (const [iso, entry] of paths) {
+      const d = geoPath(entry.feature.geometry.coordinates, refCam, 1920, 1080);
+      entry.main.setAttribute("d", d);
+      entry.casing.setAttribute("d", d);
+    }
+  }
+  const prevPaint = new Map();
   const routeGroup = document.createElementNS(NS, "g");
   svg.appendChild(routeGroup);
   const dot = document.createElementNS(NS, "circle");
@@ -146,22 +169,54 @@
     badgeEls.set(badge.id, wrap);
   }
 
-  function drawMap(f) {
+  function drawMap(f, sampleState) {
     const state = computeMapState(data.props, f, data.fps, tokens, geo, data.events);
     const cam = state.camera;
+    // The map node's own transform must be identity for the cached base
+    // group: its matrix is computed in stage coords. Any scene transform
+    // (scale/rotation/offset) falls back to per-frame re-projection.
+    const nodeState = sampleState && sampleState.map;
+    const nodeMoved = Boolean(
+      nodeState &&
+      ((nodeState["transform.scale"] ?? 1) !== 1 ||
+        (nodeState["transform.rotation"] ?? 0) !== 0 ||
+        (nodeState["transform.x"] ?? 0) !== 0 ||
+        (nodeState["transform.y"] ?? 0) !== 0),
+    );
+    let useCache = cacheOn && !nodeMoved;
+    if (useCache) {
+      const m = cameraMatrix(refCam, cam);
+      if (m) baseG.setAttribute("transform", "matrix(" + m.map((v) => v.toFixed(4)).join(" ") + ")");
+      else useCache = false; // singular frame: re-project this frame
+    }
     for (const [iso, entry] of paths) {
       const c = state.countries.find((c2) => c2.iso === iso);
       if (!c) continue;
-      const d = geoPath(entry.feature.geometry.coordinates, cam, 1920, 1080);
       const isSubject = state.focus && state.focus.subject === iso;
-      entry.main.setAttribute("d", d);
-      entry.main.setAttribute("fill", c.displayFill);
-      entry.main.setAttribute("stroke", isSubject ? tokens.light.signalRed : (register === "dark" ? (tokens.dark.baseBorder || "#9AB8B2") : "#14213d"));
-      entry.main.setAttribute("stroke-width", String(isSubject ? 7 : 2));
-      entry.casing.setAttribute("d", d);
-      entry.casing.setAttribute("fill", "none");
-      entry.casing.setAttribute("stroke", register === "dark" ? "#182022" : "#14213d");
-      entry.casing.setAttribute("stroke-width", String(isSubject ? 11 : 0));
+      if (!useCache) {
+        const d = geoPath(entry.feature.geometry.coordinates, cam, 1920, 1080);
+        entry.main.setAttribute("d", d);
+        entry.casing.setAttribute("d", d);
+      }
+      // Fills and strokes update only when they change (focus/dim windows);
+      // geometry never changes under the cache.
+      const prev = prevPaint.get(iso) || {};
+      const fill = c.displayFill;
+      // subjectStroke false (focus event) means the reference has no outline:
+      // the subject then paints exactly like any other country.
+      // borderStroke false (map props) means the reference has no country
+      // borders at all: every country paints as a flat fill with no line.
+      const strokeOn = isSubject && state.focus.subjectStroke !== false;
+      const borderOn = state.borderStroke !== false;
+      const baseStroke = borderOn ? (register === "dark" ? tokens.dark.baseBorder || "#9AB8B2" : "#14213d") : "none";
+      const stroke = strokeOn ? tokens.light.signalRed : baseStroke;
+      const sw = strokeOn ? 7 : (borderOn ? 2 : 0);
+      const csw = strokeOn ? 11 : 0;
+      if (prev.fill !== fill) { entry.main.setAttribute("fill", fill); prev.fill = fill; }
+      if (prev.stroke !== stroke) { entry.main.setAttribute("stroke", stroke); prev.stroke = stroke; }
+      if (prev.sw !== sw) { entry.main.setAttribute("stroke-width", String(sw)); prev.sw = sw; }
+      if (prev.csw !== csw) { entry.casing.setAttribute("stroke-width", String(csw)); prev.csw = csw; }
+      prevPaint.set(iso, prev);
     }
     routeGroup.innerHTML = "";
     for (const route of state.routes) {
@@ -238,8 +293,8 @@
     if (vigEl) svg.appendChild(vigEl);
   }
 
-  window.__hme.waiters.push(async (f) => {
-    drawMap(f);
+  window.__hme.waiters.push(async (f, state) => {
+    drawMap(f, state);
   });
-  drawMap(0);
+  drawMap(0, null);
 })();

@@ -72,11 +72,11 @@ export const OPEN_GAP_TEXT =
 export const USAGE = [
   "hme vignette: Measure whether a video has a vignette, and how strong.",
   "",
-  "Usage: hme vignette <video.mp4> [--out <report.json>]",
+  "Usage: hme vignette <input.mp4> [--out <report.json>]",
   "       hme vignette <ref.mp4> <ours.mp4> [--out <report.json>]",
   "",
   "Arguments:",
-  "  <video.mp4>  Path to the video to measure (one-video form).",
+  "  <input.mp4>  Path to the video to measure (one-video form).",
   "  <ref.mp4>  Path to the reference video (pair form).",
   "  <ours.mp4>  Path to our rendered video (pair form).",
   "",

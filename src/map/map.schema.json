@@ -82,6 +82,10 @@
     "subject": {
      "type": "string"
     },
+    "subjectStroke": {
+     "description": "Draw the red subject outline on the focus country. Default true. Set false when the reference has no outline.",
+     "type": "boolean"
+    },
     "point": {
      "items": {
       "type": "number"
@@ -186,6 +190,10 @@
     "$ref": "#/$defs/badge"
    },
    "type": "array"
+  },
+  "borderStroke": {
+   "description": "Draw border lines between countries. Default true. Set false when the reference has no border lines, only fill changes.",
+   "type": "boolean"
   },
   "camera": {
    "items": {

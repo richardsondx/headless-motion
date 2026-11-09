@@ -120,6 +120,132 @@ the out dir when a render fails, so the v1 videos under
 `benchmark/runs/` are gone. The v1 shas survive in
 `benchmark/results-2026-11-07.json`.
 
+## Measured results, 2026-11-08 v3 and v3q (fast render path)
+
+What changed in v3: a map layer cache (country geometry drawn once
+at the reference camera, per-frame affine transform on one SVG group,
+`src/map/project.mjs` cameraMatrix), frame dedup (a Node-side visual
+key per frame, identical frames reuse one PNG, `src/renderer/framekey.mjs`,
+`HME_DEDUP=0` disables it), and a real-time preview profile
+(`--profile preview-rt` / `--realtime`, CDP screencast, output
+`preview-rt.mp4`, labelled non-deterministic). The `final` profile
+is still supersample 1.5, preset `medium`, CRF 14; `final-max` is
+the old ceiling (supersample 2, preset `slow`).
+
+Two runs, same 9 renders, different load. v3 ran under heavy shared
+load (load average 13-21 at render start). v3q is the same 9 renders
+re-run on the quiet machine after a VM restart (load average 2-9).
+Every v3 video is byte-identical to its v3q twin (same sha256 for
+all 9 pairs), so load changes wall time only, never the pixels.
+Full data: `benchmark/results-2026-11-08-v3.json` and
+`benchmark/results-2026-11-08-v3q.json`. Videos:
+`benchmark/runs/v3-<scene>-<profile>/video.mp4` and
+`benchmark/runs/v3q-<scene>-<profile>/video.mp4`. Each render was
+timed by hand with start/end timestamps and appended to the results
+file immediately, so a restart could not wipe the set (the v2b
+benchmark died twice that way; the v3 run itself survived a VM
+restart between rows 8 and 9).
+
+### v3, loaded machine (load 13-21)
+
+| Scene | Profile | Wall | s/frame | sha256 (first 12) | Deduped |
+|---|---|---|---|---|---|
+| map-sample | draft | 378.3 s | 1.576 | 46c4495090f8 | 91 of 240 |
+| map-sample | final | 603.8 s | 2.516 | 58b4d35b126b | 91 of 240 |
+| map-sample | final-max | 500.6 s | 2.086 | be1fba67d81e | 91 of 240 |
+| text-sample | draft | 162.2 s | 0.676 | 5a4192670ab4 | 110 of 240 |
+| text-sample | final | 248.5 s | 1.035 | b83fe6a7270c | 110 of 240 |
+| text-sample | final-max | 293.6 s | 1.223 | 4f645cc7f333 | 110 of 240 |
+| scene-min | draft | 135.6 s | 0.565 | 7d6e015fc11a | 2 of 240 |
+| scene-min | final | 201.0 s | 0.838 | c3f9780f23bf | 2 of 240 |
+| scene-min | final-max | 93.0 s | 0.388 | fb84b23f5d80 | 2 of 240 |
+
+### v3q, quiet machine (load 2-9)
+
+| Scene | Profile | Wall | s/frame | sha256 (first 12) | Deduped |
+|---|---|---|---|---|---|
+| map-sample | draft | 34.6 s | 0.144 | 46c4495090f8 | 91 of 240 |
+| map-sample | final | 57.0 s | 0.237 | 58b4d35b126b | 91 of 240 |
+| map-sample | final-max | 88.5 s | 0.369 | be1fba67d81e | 91 of 240 |
+| text-sample | draft | 25.1 s | 0.105 | 5a4192670ab4 | 110 of 240 |
+| text-sample | final | 37.5 s | 0.156 | b83fe6a7270c | 110 of 240 |
+| text-sample | final-max | 64.8 s | 0.270 | 4f645cc7f333 | 110 of 240 |
+| scene-min | draft | 28.6 s | 0.119 | 7d6e015fc11a | 2 of 240 |
+| scene-min | final | 51.1 s | 0.213 | c3f9780f23bf | 2 of 240 |
+| scene-min | final-max | 79.7 s | 0.332 | fb84b23f5d80 | 2 of 240 |
+
+### Before/after vs v1 (quiet machine, load ~7.9)
+
+Draft profiles are unchanged, so their speedup is the cache plus
+dedup alone: map-sample draft 88.2 s to 34.6 s (2.5x), text-sample
+draft 78.3 s to 25.1 s (3.1x), scene-min draft 75.9 s to 28.6 s
+(2.7x). Final profiles also changed (supersample 2 to 1.5, preset
+slow to medium), so their speedup mixes the profile change with the
+cache: map-sample final 242.6 s to 57.0 s (4.3x), text-sample final
+179.1 s to 37.5 s (4.8x), scene-min final 140.4 s to 51.1 s (2.7x).
+On the loaded machine the same renders are 1.4 to 2.1 times the v1
+quiet numbers, because load dominates wall time here: map-sample
+final took 603.8 s at load 17 and 57.0 s at load 4.8, same bytes out.
+Read every wall number with its load.
+
+The draft predicate target (final under 40 s and within 1.5x draft)
+is met for one scene only: text-sample final 37.5 s, 1.49x draft.
+Map-sample final is 57.0 s, 1.65x draft; scene-min final is 51.1 s,
+1.79x draft.
+
+### Determinism: measured, pass (new path)
+
+- `map-sample` final, run-a (loaded) vs run-b (quiet): byte-identical
+  video sha256 `58b4d35b126b899a`, all 240 frame hashes identical.
+- All 9 v3 videos byte-identical to their v3q twins (see the tables:
+  same sha256 in both columns).
+- Renderer unit tests: determinism on previs, 12 frames, two runs
+  match; 23 renderer tests pass, 98 Node tests pass in total. The
+  Python checker suite (13 tests) did not finish under load in this
+  session; the 11 layout tests passed in the earlier layout build.
+
+### Quality, old path vs new path: measured, essentially identical
+
+Map-sample, 240 frames each, at 854x480: draft old (sha `4ec4448e`)
+vs new (sha `46c44950`): SSIM mean 0.99997, min 0.99989, 0 frames
+below 0.99, PSNR mean 68.61 dB. Final old (sha `4db79517`) vs new
+(sha `58b4d35b`): SSIM mean 0.99999, min 0.99996, PSNR mean 72.2 dB.
+Full data: `benchmark/quality-map-draft-old-vs-v3.json` and
+`benchmark/quality-map-final-old-vs-v3.json`. The map cache is not
+byte-identical to the legacy path (a 12-frame moving-camera smoke
+test gave SSIM 0.998, PSNR 44.6 dB, PNG hashes differ), because path
+coordinates are rounded at the reference camera and then transformed
+instead of being rounded at the frame camera. The picture matches;
+the video sha differs. Two runs of the new path are byte-identical.
+
+### Real-time preview: measured, target not met under load
+
+`--profile preview-rt` on scene-min (240 frames, 10 s): valid
+1920x1080 h264, all 240 seeks reached, labelled non-deterministic
+everywhere, output `preview-rt.mp4`. Wall time 228.3 s (first
+sampling) and 185.5 s (fixed per-seek sampling), against a target
+of under 20 s. Cause: each seek waits on 2 rAF ticks and the
+compositor runs at about 1 fps under load, so a seek takes about
+0.9 s against a 41.7 ms frame interval. Two preview runs give
+different video shas, as expected. Sampling bug found and fixed in
+this run: the first version sampled the first 10 s of screencast
+time, so the video was nearly static (inter-frame SSIM 0.9966 to
+0.9992); the fixed version samples per seek, so the video shows the
+whole scene (inter-frame SSIM 0.9535).
+
+### Verdict
+
+FASTER with a named tradeoff. Quiet-machine renders are 2.5 to 4.8
+times faster than v1, determinism is proven byte-identical, and
+old-vs-new pixels match at SSIM 0.99997 to 0.99999. Tradeoffs: the
+real-time preview does not hit under 20 s on the loaded VM (185 to
+228 s), and the map cache is not byte-identical to the legacy path
+(SSIM 0.998 and up, but a different video sha). The SVG transform
+cache alone does not speed up capture (12-frame moving-camera smoke:
+170 s on vs 139 s off, inside load noise); the measured speedup
+comes from frame dedup plus the profile change. A bitmap layer cache
+is the next step if more speed is needed.
+
 ### Determinism: measured, pass
 
 - `scene-min` final is byte-identical across two runs hours apart

@@ -33,6 +33,39 @@ export function projectToScreen(frameState, lngLat) {
   return projectPoint(lngLat[0], lngLat[1], frameState.camera);
 }
 
+/** Affine matrix [a, b, c, d, e, f] mapping screen coords under camera
+ * `from` to screen coords under camera `to`, in SVG matrix(a b c d e f)
+ * order: x' = a*x + c*y + e, y' = b*x + d*y + f. Exact: projectPoint is
+ * affine in lng/lat (scale, pitch y-scale, bearing rotation, translate),
+ * so the map is exact up to float rounding. The layer cache uses it to
+ * draw country paths once at the reference camera and transform them per
+ * frame instead of re-projecting every vertex. Returns null when the map
+ * is singular (e.g. pitch 90 collapses a dimension). */
+export function cameraMatrix(from, to, width = 1920, height = 1080) {
+  const p = (lng, lat, cam) => projectPoint(lng, lat, cam, width, height);
+  const f0 = p(0, 0, from), f1 = p(1, 0, from), f2 = p(0, 1, from);
+  const t0 = p(0, 0, to), t1 = p(1, 0, to), t2 = p(0, 1, to);
+  const ux = f1[0] - f0[0], uy = f1[1] - f0[1];
+  const vx = f2[0] - f0[0], vy = f2[1] - f0[1];
+  const det = ux * vy - uy * vx;
+  if (!isFinite(det) || Math.abs(det) < 1e-9) return null;
+  const wx = t1[0] - t0[0], wy = t1[1] - t0[1];
+  const zx = t2[0] - t0[0], zy = t2[1] - t0[1];
+  const a = (wx * vy - zx * uy) / det;
+  const b = (wy * vy - zy * uy) / det;
+  const c = (zx * ux - wx * vx) / det;
+  const d = (zy * ux - wy * vx) / det;
+  const e = t0[0] - (a * f0[0] + c * f0[1]);
+  const f = t0[1] - (b * f0[0] + d * f0[1]);
+  const out = [a, b, c, d, e, f];
+  if (!out.every(Number.isFinite)) return null;
+  // The map itself must be non-singular too: a `to` camera with pitch 90
+  // collapses a dimension (cos(90) is ~6e-17, not 0), so its matrix has a
+  // ~0 determinant even though the `from` basis is fine.
+  if (Math.abs(a * d - b * c) < 1e-9) return null;
+  return out;
+}
+
 /** GeoJSON Polygon/MultiPolygon coordinates to an SVG path string. */
 export function geoPath(coords, camera, width, height) {
   const ring = (r) => r.map((pt, i) => `${i === 0 ? "M" : "L"}${projectPoint(pt[0], pt[1], camera, width, height).map((v) => v.toFixed(2)).join(" ")}`).join("") + "Z";

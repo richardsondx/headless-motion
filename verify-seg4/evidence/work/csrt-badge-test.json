@@ -1,0 +1,68 @@
+{
+ "video": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/refs/seg4-ref-0-8s.mp4",
+ "tracker": "CSRT",
+ "init_second": 4,
+ "init_bbox_video": [
+  903.0,
+  508.9,
+  130.0,
+  129.8
+ ],
+ "results": {
+  "5": {
+   "frame": 120,
+   "csrt_centre_1080": [
+    953.5,
+    554.6
+   ],
+   "csrt_size_video": [
+    127,
+    126
+   ],
+   "trace_centre_1080": [
+    799,
+    666
+   ],
+   "dx": 154.5,
+   "dy": -111.4,
+   "deviation_px": 190.49
+  },
+  "6": {
+   "frame": 144,
+   "csrt_centre_1080": [
+    738.0,
+    651.8
+   ],
+   "csrt_size_video": [
+    130,
+    129
+   ],
+   "trace_centre_1080": [
+    699,
+    727
+   ],
+   "dx": 39.0,
+   "dy": -75.2,
+   "deviation_px": 84.67
+  },
+  "7": {
+   "frame": 168,
+   "csrt_centre_1080": [
+    682.0,
+    683.1
+   ],
+   "csrt_size_video": [
+    138,
+    137
+   ],
+   "trace_centre_1080": [
+    693,
+    732
+   ],
+   "dx": -11.0,
+   "dy": -48.9,
+   "deviation_px": 50.16
+  }
+ },
+ "verdict_5px": "FAIL"
+}

@@ -34,5 +34,27 @@
     },
     "preset": "veryfast",
     "supersample": 1
+  },
+  "preview-rt": {
+    "crf": 23,
+    "description": "Real-time preview: plays the scene in the browser and records it as it plays. NON-DETERMINISTIC. Preview only, never final output or verification.",
+    "nondeterministic": true,
+    "output": {
+      "height": 1080,
+      "width": 1920
+    },
+    "preset": "veryfast",
+    "realtime": true,
+    "supersample": 1
+  },
+  "vertical": {
+    "crf": 14,
+    "description": "Portrait twin of final: 1080x1920 at 24 fps for vertical Shorts.",
+    "output": {
+      "height": 1920,
+      "width": 1080
+    },
+    "preset": "medium",
+    "supersample": 1.5
   }
 }

@@ -36,6 +36,150 @@ def load_predicate():
     return json.loads(data)
 
 
+# ---- S9 progressive resolve (Unit B, stage2-coarse-fine-2026-11-08-01) ----
+# Thresholds live here as named constants with their source, NOT in
+# predicate.json (pred-v1 is frozen). Set from the Unit A SYNTHETIC
+# working pair (480x270, 188 frames, same final still for both videos):
+# true mid-third median lap_var 747.32 (range 711.64-839.91), fake
+# mid-third median lap_var 9.42 (range 4.14-21.66); 100.0 sits ~10x
+# above the fake mid max (21.66) and ~7x below the true mid min
+# (711.64). hf_ratio: fake mid max 0.0040, true mid min 0.1220.
+# End frames are the same still (lap_var 1059.79 true vs 1059.85
+# fake), so end similarity alone cannot separate them — that is the
+# point of this check. Nothing here measures the Ananth clip.
+RESOLVE_LAP_VAR_THRESHOLD = 100.0
+RESOLVE_HF_RATIO_THRESHOLD = 0.02
+RESOLVE_END_SSIM_MIN = 0.95
+RESOLVE_END_LAP_VAR_MIN = 100.0
+
+
+def _resolve_thresholds(pr):
+    """Thresholds from the profile when it carries them, else constants."""
+    th = pr.get("thresholds") or {}
+    return (float(th.get("lap_var_threshold", RESOLVE_LAP_VAR_THRESHOLD)),
+            float(th.get("hf_ratio_threshold", RESOLVE_HF_RATIO_THRESHOLD)))
+
+
+def check_progressive_resolve(pr, end_ssim=None):
+    """Stage S9 rule, pure function of one progressive_resolve object.
+
+    pr is a single video's progressive_resolve object as produced by
+    src/reference/teardown.py measure_progressive_resolve (Unit A).
+    end_ssim is the SSIM of the video's last frame against the resolved
+    end still (checker metrics.ssim_frame on luma), or None to use the
+    end lap_var as the sharp-end proxy.
+
+    Fires RESOLVE_BY_BLUR iff ALL hold:
+      1. detail_structure is "absent" AND the mid-third medians are
+         under threshold (lap_var and hf_ratio) — the mid resolve
+         carried no dab/detail structure;
+      2. the end is sharp — end lap_var at or above threshold, and
+         when end_ssim is supplied it is above 0.95. A resolve that
+         never gets sharp is a different failure, not a blur-back.
+    The no-ease part (P4) is recorded, never fitted: camera_ease,
+    ease_fitted and picker_invoked are reported; no_ease_ok is true
+    when camera_ease is "none" with no ease fitted and the picker
+    not invoked. This function never calls pick-ease.mjs.
+    """
+    if not isinstance(pr, dict) or "detail_structure" not in pr:
+        raise ValueError("check_progressive_resolve needs one progressive_resolve object "
+                         "(pick 'true' or 'fake' from a pair profile first)")
+    lap_thr, hf_thr = _resolve_thresholds(pr)
+    mid = pr.get("detail_structure_mid_frames") or {}
+    mid_lap = mid.get("median_lap_var")
+    mid_hf = mid.get("median_hf_ratio")
+    flag_absent = pr.get("detail_structure") == "absent"
+    if mid_lap is None or mid_hf is None:
+        mid_below = flag_absent
+    else:
+        mid_below = float(mid_lap) < lap_thr and float(mid_hf) < hf_thr
+    end = pr.get("end_state") or {}
+    end_lap = end.get("lap_var")
+    end_sharp_lap = end_lap is not None and float(end_lap) >= RESOLVE_END_LAP_VAR_MIN
+    if end_ssim is None:
+        end_sharp = end_sharp_lap
+    else:
+        end_sharp = end_sharp_lap and float(end_ssim) > RESOLVE_END_SSIM_MIN
+    cam = pr.get("camera") or {}
+    camera_ease = pr.get("camera_ease", cam.get("camera_ease"))
+    ease_fitted = bool(cam.get("ease_fitted", False))
+    picker_invoked = bool(cam.get("picker_invoked", False))
+    no_ease_ok = camera_ease == "none" and not ease_fitted and not picker_invoked
+    fires = bool(flag_absent and mid_below and end_sharp)
+    if fires:
+        message = (f"RESOLVE_BY_BLUR: mid resolve has no detail structure "
+                   f"(mid median lap_var {float(mid_lap):.2f} under {lap_thr}, "
+                   f"hf_ratio {float(mid_hf):.4f} under {hf_thr}) "
+                   f"but the end is sharp (end lap_var {float(end_lap):.2f}"
+                   + (f", end SSIM {float(end_ssim):.4f} over {RESOLVE_END_SSIM_MIN})"
+                      if end_ssim is not None else ")")
+                   + "; this is a blur-back, not a coarse-to-fine resolve")
+    else:
+        message = (f"progressive resolve ok: detail_structure "
+                   f"{pr.get('detail_structure')}, mid median lap_var "
+                   f"{float(mid_lap):.2f}, end lap_var "
+                   f"{float(end_lap):.2f}"
+                   + (f", end SSIM {float(end_ssim):.4f}" if end_ssim is not None else "")
+                   + f", camera_ease {camera_ease}")
+    return {
+        "verdict": "fail" if fires else "pass",
+        "code": "RESOLVE_BY_BLUR" if fires else None,
+        "detail_structure": pr.get("detail_structure"),
+        "mid_median_lap_var": None if mid_lap is None else round(float(mid_lap), 4),
+        "mid_median_hf_ratio": None if mid_hf is None else round(float(mid_hf), 4),
+        "lap_var_threshold": lap_thr,
+        "hf_ratio_threshold": hf_thr,
+        "end_lap_var": None if end_lap is None else round(float(end_lap), 4),
+        "end_ssim": None if end_ssim is None else round(float(end_ssim), 4),
+        "end_sharp": bool(end_sharp),
+        "camera_ease": camera_ease,
+        "ease_fitted": ease_fitted,
+        "picker_invoked": picker_invoked,
+        "no_ease_ok": bool(no_ease_ok),
+        "message": message,
+    }
+
+
+def stage_s9(pr, end_ssim=None):
+    """Run S9 on one progressive_resolve object.
+
+    Returns (stage_dict, failure_or_None) in the same shape stages.py
+    fail() produces, so defects.py classify() maps it with 0
+    unclassified codes.
+    """
+    res = check_progressive_resolve(pr, end_ssim=end_ssim)
+    mid_frame = (pr.get("detail_structure_mid_frames") or {}).get("per_frame", [{}])[0].get("frame")
+    row = {"frame": mid_frame, "value": res["mid_median_lap_var"],
+           "threshold": res["lap_var_threshold"], "comparator": ">=",
+           "end_ssim": res["end_ssim"], "end_lap_var": res["end_lap_var"],
+           "camera_ease": res["camera_ease"]}
+    stage = {"stage": "S9", "status": "pass" if res["verdict"] == "pass" else "fail",
+             "rows": [row]}
+    failure = None
+    if res["verdict"] == "fail":
+        failure = {"code": "RESOLVE_BY_BLUR", "message": res["message"], "row": row}
+    return stage, failure, res
+
+
+def _load_progressive_resolve(spec):
+    """Load one progressive_resolve object for run_check's opt-in S9.
+
+    spec is a path to a reference-profile JSON, or {"path": ..., "which":
+    "true"|"fake"}. A pair profile (true+fake) needs "which"; a single
+    object is used as-is.
+    """
+    path = spec["path"] if isinstance(spec, dict) else spec
+    which = spec.get("which") if isinstance(spec, dict) else None
+    data = json.loads(Path(path).read_text())
+    inner = data.get("progressive_resolve", data)
+    if isinstance(inner, dict) and "true" in inner and "fake" in inner:
+        if which is None:
+            raise ValueError("progressive_resolve profile holds true+fake; "
+                             "cfg progressive_resolve must set 'which'")
+        return inner[which]
+    return inner
+
+
 def _row(frame, ssim, psnr, lpips, motion_err, shift_x, shift_y):
     return {"frame": frame, "ssim": round(ssim, 4), "psnr": round(psnr, 2),
             "lpips": None if lpips is None else round(lpips, 4),
@@ -284,6 +428,27 @@ def run_check(cfg, render_path, ref_path, out_dir, full=False, diagnose_offset=F
                         lc.get("tolerances", {})):
                     s8["rows"].append(row)
         s8["status"] = "info"
+
+    # S9 progressive resolve (opt-in only). Runs only when cfg sets
+    # "progressive_resolve" (a profile path, or {"path": ..., "which":
+    # "true"|"fake"}). It never changes the verdict of a cfg without
+    # that key. End SSIM is not available here, so the end lap_var is
+    # the sharp-end proxy; the standalone S9 run (units/B/run_s9.py)
+    # measures end SSIM as well. A missing/unreadable profile leaves
+    # S9 incomplete, never a silent pass.
+    if cfg.get("progressive_resolve"):
+        s9 = stage("S9")
+        try:
+            pr = _load_progressive_resolve(cfg["progressive_resolve"])
+            res = check_progressive_resolve(pr)
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            s9["status"] = "incomplete"
+            result["notes"].append(f"S9 progressive_resolve unavailable: {type(e).__name__}: {e}")
+        else:
+            s9_stage, failure, _ = stage_s9(pr)
+            s9["rows"] = s9_stage["rows"]
+            if failure is not None:
+                fail(s9, failure["code"], failure["message"], failure["row"])
 
     if result["failures"]:
         result["verdict"] = "FAIL"

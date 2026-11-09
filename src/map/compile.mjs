@@ -141,5 +141,5 @@ export function computeMapState(props, frame, fps, tokens, geoFeatures, events) 
     visible: b.f === undefined || frame >= b.f,
     screen: projectPoint(b.at[0], b.at[1], camera),
   }));
-  return { frame, fps, camera, focus, countries, routes: Object.values(routeStates), labels, badges, register, baseFill: register === "dark" ? (tokens.dark.landBase || tokens.dark.landMeasuredThumb || tokens.dark.land) : tokens.light.tanLand };
+  return { frame, fps, camera, focus, countries, routes: Object.values(routeStates), labels, badges, register, borderStroke: props.borderStroke !== false, baseFill: register === "dark" ? (tokens.dark.landBase || tokens.dark.landMeasuredThumb || tokens.dark.land) : tokens.light.tanLand };
 }

@@ -1,0 +1,475 @@
+{
+ "title": "Control experiment: ceiling for a perfect clone vs screenshot references",
+ "date": "2026-11-08",
+ "method": "Clean v5 frames vs screenshots of our own v5 video through the same player path as the reference frames (1919x1497 window, video area cropped 185,55,1533x831, resized to 1920x1080). SSIM/PSNR via src/checker/metrics.py, LPIPS alex as in checker S6, Delta E CIEDE2000 on 21x21 medians at the measure-v5.py points.",
+ "arms": {
+  "clean": {
+   "pairs": {
+    "1": {
+     "ssim": 0.9713,
+     "psnr_db": 39.51,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#683737",
+       "control_hex": "#633839",
+       "delta_e": 1.84,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#121A1A",
+       "delta_e": 1.42,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#121A1A",
+       "delta_e": 1.99,
+       "pass": true
+      },
+      "rsf": {
+       "present": false
+      }
+     },
+     "worst_delta_e": 1.99,
+     "lpips": 0.0471
+    },
+    "4": {
+     "ssim": 0.9703,
+     "psnr_db": 37.51,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6D3F2C",
+       "delta_e": 0.78,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#162824",
+       "delta_e": 0.17,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#152823",
+       "delta_e": 0.61,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.93,
+     "lpips": 0.0413
+    },
+    "5": {
+     "ssim": 0.9709,
+     "psnr_db": 37.83,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3730",
+       "delta_e": 0.79,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#142723",
+       "control_hex": "#152823",
+       "delta_e": 0.35,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#152823",
+       "delta_e": 0.83,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.93,
+     "lpips": 0.0409
+    },
+    "7": {
+     "ssim": 0.9708,
+     "psnr_db": 37.58,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3730",
+       "delta_e": 0.79,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#152723",
+       "delta_e": 0.5,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11191A",
+       "control_hex": "#131A1B",
+       "delta_e": 0.56,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6E402D",
+       "delta_e": 0.75,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.79,
+     "lpips": 0.0408
+    }
+   },
+   "means_4_pairs": {
+    "ssim": 0.9708,
+    "psnr_db": 38.11,
+    "lpips": 0.0425
+   },
+   "worst_delta_e": {
+    "value": 1.99,
+    "second": 1
+   },
+   "passes_pred_v1_seg4": true
+  },
+  "yt": {
+   "pairs": {
+    "1": {
+     "ssim": 0.9418,
+     "psnr_db": 37.56,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#683737",
+       "control_hex": "#66383A",
+       "delta_e": 1.26,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#131A1A",
+       "delta_e": 1.24,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#131A1A",
+       "delta_e": 1.74,
+       "pass": true
+      },
+      "rsf": {
+       "present": false
+      }
+     },
+     "worst_delta_e": 1.74,
+     "lpips": 0.125
+    },
+    "4": {
+     "ssim": 0.9295,
+     "psnr_db": 34.95,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6C402C",
+       "delta_e": 0.77,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#162824",
+       "delta_e": 0.42,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#152823",
+       "delta_e": 0.61,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.93,
+     "lpips": 0.1069
+    },
+    "5": {
+     "ssim": 0.9328,
+     "psnr_db": 35.51,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3830",
+       "delta_e": 1.1,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#142723",
+       "control_hex": "#152724",
+       "delta_e": 0.52,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#162823",
+       "delta_e": 0.89,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 1.1,
+     "lpips": 0.1012
+    },
+    "7": {
+     "ssim": 0.9344,
+     "psnr_db": 35.85,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3830",
+       "delta_e": 1.08,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#152723",
+       "delta_e": 0.5,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11191A",
+       "control_hex": "#121A1B",
+       "delta_e": 0.33,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6D402D",
+       "delta_e": 0.77,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 1.08,
+     "lpips": 0.0987
+    }
+   },
+   "means_4_pairs": {
+    "ssim": 0.9346,
+    "psnr_db": 35.97,
+    "lpips": 0.1079
+   },
+   "worst_delta_e": {
+    "value": 1.74,
+    "second": 1
+   },
+   "passes_pred_v1_seg4": false
+  },
+  "yt21": {
+   "pairs": {
+    "1": {
+     "ssim": 0.9648,
+     "psnr_db": 38.76,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#683737",
+       "control_hex": "#643939",
+       "delta_e": 1.51,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#121A1A",
+       "delta_e": 1.31,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11181A",
+       "control_hex": "#131A1A",
+       "delta_e": 1.74,
+       "pass": true
+      },
+      "rsf": {
+       "present": false
+      }
+     },
+     "worst_delta_e": 1.74,
+     "lpips": 0.0604
+    },
+    "4": {
+     "ssim": 0.9565,
+     "psnr_db": 36.4,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6D402C",
+       "delta_e": 0.75,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#162824",
+       "delta_e": 0.35,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#152824",
+       "control_hex": "#152824",
+       "delta_e": 0.0,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.93,
+     "lpips": 0.0523
+    },
+    "5": {
+     "ssim": 0.9597,
+     "psnr_db": 36.93,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3830",
+       "delta_e": 1.08,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#142723",
+       "control_hex": "#152824",
+       "delta_e": 0.25,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#152723",
+       "delta_e": 0.5,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#CB4524",
+       "control_hex": "#CC4729",
+       "delta_e": 0.93,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 1.08,
+     "lpips": 0.0489
+    },
+    "7": {
+     "ssim": 0.9621,
+     "psnr_db": 37.1,
+     "areas": {
+      "sudan": {
+       "present": true,
+       "clean_hex": "#0C352F",
+       "control_hex": "#0E3730",
+       "delta_e": 0.79,
+       "pass": true
+      },
+      "land": {
+       "present": true,
+       "clean_hex": "#132622",
+       "control_hex": "#152723",
+       "delta_e": 0.5,
+       "pass": true
+      },
+      "water": {
+       "present": true,
+       "clean_hex": "#11191A",
+       "control_hex": "#131A1B",
+       "delta_e": 0.56,
+       "pass": true
+      },
+      "rsf": {
+       "present": true,
+       "clean_hex": "#6C3E2A",
+       "control_hex": "#6D402D",
+       "delta_e": 0.77,
+       "pass": true
+      }
+     },
+     "worst_delta_e": 0.79,
+     "lpips": 0.0457
+    }
+   },
+   "means_4_pairs": {
+    "ssim": 0.9608,
+    "psnr_db": 37.3,
+    "lpips": 0.0518
+   },
+   "worst_delta_e": {
+    "value": 1.74,
+    "second": 1
+   },
+   "bitrate_mbps": 2.46,
+   "passes_pred_v1_seg4": true
+  }
+ },
+ "limits": [
+  "Control screenshots carry no captions, player chrome, watermark or cursor, so this ceiling is an UPPER bound. The true ceiling against the real reference frames is lower.",
+  "The clean arm isolates the screenshot + resize penalty. The yt arm adds YouTube-like compression (x264 crf 28). Neither arm reproduces YouTube's exact encoder, so the yt arm is an approximation of the compression part.",
+  "4 paired seconds only, same as the v5 check."
+ ]
+}

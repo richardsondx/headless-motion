@@ -1,0 +1,37 @@
+{
+  "verdict": {
+    "status": "PASS",
+    "failed_bar": null,
+    "detail": "Rendered 1 frames at final to /home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render-v7-final/video.mp4."
+  },
+  "numbers": {
+    "scene": "tests/fixtures/seg4-scene-clone-v7.json",
+    "profile": "final",
+    "render_out": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render-v7-final",
+    "video": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render-v7-final/video.mp4",
+    "video_exists": true,
+    "video_bytes": 340504,
+    "frames_captured": 1,
+    "frames_requested": 1,
+    "determinism_verified": null,
+    "renderer_exit": 0,
+    "renderer_code": null,
+    "renderer_stage": "probe",
+    "renderer_message": "",
+    "scene_sha256": "179cdc93cb9ce1f52b290c61e8677707a1ac618e7936a629f6b71809a5d64728",
+    "render_report": "/home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render-v7-final/render-report.json"
+  },
+  "corrections": [],
+  "context": {
+    "thresholds": {
+      "renderer_exit": 0,
+      "frames_captured_min": 1
+    },
+    "control_ceiling": null,
+    "meaning": "Exit 0 with a video file means the scene renders end to end at this profile."
+  },
+  "next": "hme compare ref.mp4 /home/hatch/workspace/headless-motion-engine/verify-seg4/evidence/work/layering/fresh-render-v7-final/video.mp4 --out out/compare.json",
+  "limits": [
+    "This report covers the render only. It says nothing about how close the video is to a reference."
+  ]
+}

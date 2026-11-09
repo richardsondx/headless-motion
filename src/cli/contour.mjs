@@ -23,14 +23,20 @@
 // the same pattern compare.mjs and colour.mjs use. The driver prints
 // exactly one JSON object to stdout. Progress goes to stderr.
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sampleScene } from "../scene/evaluate.mjs";
+import { loadScene, validateScene } from "../scene/validate.mjs";
+import { computeMapState } from "../map/compile.mjs";
+import { projectPoint } from "../map/project.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "..", "..");
 const SRC_DIR = resolve(REPO_ROOT, "src");
 const VENV_PYTHON = resolve(REPO_ROOT, ".venv", "bin", "python");
+const GEOJSON_PATH = resolve(REPO_ROOT, "assets", "natural-earth", "ne_10m_admin_0_countries.geojson");
+const TOKENS_PATH = resolve(REPO_ROOT, "src", "map", "tokens.json");
 
 export const FPS = 24;
 export const STRIDE = 1;
@@ -41,7 +47,7 @@ export const CHAMFER_CAVEAT =
 export const USAGE = [
   "hme contour: Measure a Sudan outline against a reference outline on one frame pair.",
   "",
-  "Usage: hme contour <ref-frame.png> <ours-frame.png> [--at-s <n>] [--out <report.json>]",
+  "Usage: hme contour <ref-frame.png> <ours-frame.png> [--at-s <n>] [--scene <scene.json>] [--out <report.json>]",
   "",
   "Arguments:",
   "  <ref-frame.png>  One frame from the reference video.",
@@ -49,9 +55,11 @@ export const USAGE = [
   "",
   "Options:",
   "  --at-s <n>  Time in seconds of the frame. When absent, it is derived from the ref frame number at 24 fps (ref-0168.png means 7 s).",
+  "  --scene <file>  Scene file for the ours side. Names the nearest path node to the worst outline point in the report (nearest_node), with the correction in px. Without it, nearest_node is null.",
   "  --out <file>  Write the JSON report here. Without it, the report goes to stdout.",
   "",
   "The headline is Hausdorff on full contour point sets (no 400 point cap), badge-masked, at full resolution (stride 1). Chamfer is reported second, with its containment caveat. Aligned Hausdorff scales and centres the ours contour onto the ref contour first, so shape separates from camera. Neighbours are presence rows by direction (north, west, east), not bboxes.",
+  "With --scene, the report also names the nearest node to the worst outline point on our side: a points-list node (kind points-node, movable with hme path move) or a Natural Earth map vertex of the focus country (kind map-vertex, which lives in map geometry, not in a points list, so hme path cannot move it). The correction is the outline delta at the worst spot, ref minus ours, in frame px.",
   "",
   "Exit codes: 0 measured (including Sudan absent), 2 usage or run error.",
 ].join("\n") + "\n";
@@ -70,6 +78,259 @@ export function parseAtS(filePath) {
   const bySeconds = base.match(/(\d+(?:\.\d+)?)s\./);
   if (bySeconds) return Number(bySeconds[1]);
   return null;
+}
+
+// --- contour to node (U5) ---
+//
+// The worst outline point is a frame pixel. An agent cannot fix a
+// pixel. It fixes a node. These functions map the worst point to the
+// nearest editable node in the scene, in frame px, and state the
+// correction as a node id plus a px delta.
+//
+// Two node kinds exist in a scene:
+// - points-node: a shape node with a points list (U1 format). The
+//   anchor projects to frame px through the sampled state at the
+//   frame: box plus transform offset, scale and rotation about the
+//   element centre, the same model the ledger uses for a node box.
+//   This node moves with `hme path move`.
+// - map-vertex: a vertex of a Natural Earth country polygon, drawn by
+//   the map module through its own projection at the frame camera.
+//   The Sudan outline in the proof scene is map geometry, not a
+//   points list, so its nearest node is a map vertex. A map vertex
+//   has no point id and `hme path` cannot move it. The report says
+//   so plainly instead of printing a command that would fail.
+//
+// The nearest node is measured to the ours-side worst point
+// (worst.ours_xy), the point on our outline that must move. The
+// nearest node to the ref-side point can sit on a different stretch
+// of the border: at 5 s the ref point is 29.7 px from a southern
+// border vertex, while the ours point is 5.0 px from the vertex that
+// forms the outline at the worst spot. The correction delta is ref
+// minus ours at the worst spot.
+//
+// Vertex order is fixed: polygons in GeoJSON order, rings in order,
+// vertices in ring order, one running index per feature. A ring's
+// closing vertex repeats its first vertex, so it is skipped: it is
+// the same point, not a second node.
+
+const r1 = (v) => Math.round(v * 10) / 10;
+
+// Screen xy of one points-list anchor at one frame. Pure function.
+// box and transform come from the sampled state of the node.
+export function pointsAnchorScreenXY(state, anchor) {
+  const w = state["box.w"];
+  const h = state["box.h"];
+  const tx = state["transform.x"] || 0;
+  const ty = state["transform.y"] || 0;
+  const scaleX = state["transform.scaleX"] ?? state["transform.scale"] ?? 1;
+  const scaleY = state["transform.scaleY"] ?? state["transform.scale"] ?? 1;
+  const rot = state["transform.rotation"] || 0;
+  const cx = (state["box.x"] || 0) + tx + w / 2;
+  const cy = (state["box.y"] || 0) + ty + h / 2;
+  const sx = (anchor[0] - w / 2) * scaleX;
+  const sy = (anchor[1] - h / 2) * scaleY;
+  const rad = (rot * Math.PI) / 180;
+  const rx = sx * Math.cos(rad) - sy * Math.sin(rad);
+  const ry = sx * Math.sin(rad) + sy * Math.cos(rad);
+  return [r1(cx + rx), r1(cy + ry)];
+}
+
+function isPointsList(v) {
+  return Array.isArray(v) && v.length > 0 && v.every((p) => p && Array.isArray(p.anchor)
+    && p.anchor.length === 2 && p.anchor.every(Number.isFinite) && typeof p.id === "string");
+}
+
+// One candidate per points-list anchor of every visible shape node
+// at the frame. Pure function of scene plus frame. Invisible nodes
+// are skipped: they draw no outline at this frame.
+export function pointsNodeCandidates(scene, frame) {
+  const state = sampleScene(scene, frame);
+  const out = [];
+  for (const node of scene.nodes) {
+    if (node.type !== "shape") continue;
+    const s = state[node.id];
+    if (!s || !s.visible) continue;
+    const points = s["props.points"];
+    if (!isPointsList(points)) continue;
+    for (const p of points) {
+      const [x, y] = pointsAnchorScreenXY(s, p.anchor);
+      out.push({
+        node_id: `${node.id}:${p.id}`,
+        kind: "points-node",
+        node: node.id,
+        point: p.id,
+        x,
+        y,
+      });
+    }
+  }
+  return out;
+}
+
+// Camera plus focus subject of a map node at a frame, through the
+// same computeMapState the renderer uses. Pure function of its
+// arguments. Returns {camera, focus_subject}.
+export function mapCameraAtFrame(mapProps, frame, fps, events, tokens, geoFeatures) {
+  const state = computeMapState(mapProps, frame, fps, tokens, geoFeatures, events || []);
+  return { camera: state.camera, focus_subject: state.focus ? state.focus.subject : null };
+}
+
+// One candidate per vertex of one GeoJSON feature, projected to
+// screen px at the frame camera. Pure function. The closing vertex
+// of each ring is skipped (see the note above).
+export function projectMapVertices(feature, camera, width, height) {
+  const iso = feature.properties ? feature.properties.ISO_A3 : null;
+  const name = feature.properties ? (feature.properties.NAME || iso) : iso;
+  const geom = feature.geometry || {};
+  const polys = geom.type === "Polygon" ? [geom.coordinates]
+    : geom.type === "MultiPolygon" ? geom.coordinates : [];
+  const out = [];
+  let n = 0;
+  polys.forEach((poly, polyIndex) => {
+    poly.forEach((ring, ringIndex) => {
+      const verts = ring.length > 1
+        && ring[0][0] === ring[ring.length - 1][0]
+        && ring[0][1] === ring[ring.length - 1][1]
+        ? ring.slice(0, -1) : ring;
+      verts.forEach((v, posInRing) => {
+        const [x, y] = projectPoint(v[0], v[1], camera, width, height);
+        out.push({
+          node_id: `map:${iso}:vertex-${n}`,
+          kind: "map-vertex",
+          country_iso: iso,
+          country_name: name,
+          vertex_index: n,
+          polygon_index: polyIndex,
+          ring_index: ringIndex,
+          position_in_ring: posInRing,
+          lon_lat: [v[0], v[1]],
+          x: r1(x),
+          y: r1(y),
+        });
+        n++;
+      });
+    });
+  });
+  return out;
+}
+
+// Map-vertex candidates for a scene at a frame. Pure function of
+// scene plus frame plus tokens plus GeoJSON features. The focus
+// subject country is used when the map has a focus; otherwise every
+// included country is used. Returns {candidates, notes}.
+export function mapVertexCandidates(scene, frame, tokens, geoFeatures) {
+  const notes = [];
+  const mapNode = (scene.nodes || []).find((n) => n.type === "map");
+  if (!mapNode) return { candidates: [], notes: ["scene has no map node"] };
+  const fps = scene.meta.fps;
+  const width = scene.meta.width;
+  const height = scene.meta.height;
+  const { camera, focus_subject } = mapCameraAtFrame(
+    mapNode.props, frame, fps, scene.events || [], tokens, geoFeatures);
+  const include = (mapNode.props.geometry && mapNode.props.geometry.include) || [];
+  const isos = focus_subject ? [focus_subject] : include;
+  if (isos.length === 0) {
+    return { candidates: [], notes: ["map node names no country: no focus subject and an empty include list"] };
+  }
+  const candidates = [];
+  for (const iso of isos) {
+    const feature = (geoFeatures || []).find((f) => f.properties && f.properties.ISO_A3 === iso);
+    if (!feature) {
+      notes.push(`no GeoJSON feature for country ${iso}`);
+      continue;
+    }
+    candidates.push(...projectMapVertices(feature, camera, width, height));
+  }
+  return { candidates, notes };
+}
+
+// Nearest candidate to a target point, by screen distance. Pure
+// function. Ties go to the first candidate in order, so the result
+// is deterministic. Returns {candidate, distance_px} or null.
+export function nearestNode(candidates, x, y) {
+  let best = null;
+  let bestD = Infinity;
+  for (const c of candidates) {
+    const d = Math.hypot(c.x - x, c.y - y);
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  if (!best) return null;
+  return { candidate: best, distance_px: r1(bestD) };
+}
+
+// A screen px delta as a lon/lat delta, by probing the affine
+// projection at the vertex. Pure function. Returns null when the
+// projection is singular at that point.
+export function screenDeltaToLonLat(camera, lng, lat, dx, dy) {
+  const p00 = projectPoint(lng, lat, camera);
+  const p10 = projectPoint(lng + 1, lat, camera);
+  const p01 = projectPoint(lng, lat + 1, camera);
+  const a = p10[0] - p00[0];
+  const b = p01[0] - p00[0];
+  const c = p10[1] - p00[1];
+  const d = p01[1] - p00[1];
+  const det = a * d - b * c;
+  if (!isFinite(det) || Math.abs(det) < 1e-9) return null;
+  const dlng = (dx * d - dy * b) / det;
+  const dlat = (a * dy - c * dx) / det;
+  if (![dlng, dlat].every(Number.isFinite)) return null;
+  const norm = (v) => Math.round(v * 1000) / 1000 + 0;
+  return [norm(dlng), norm(dlat)];
+}
+
+// The correction for the nearest node, from the worst point. The
+// delta is the outline delta at the worst spot, ref minus ours, in
+// frame px: moving the node by this vector shifts the outline near
+// the node toward the reference outline. Pure function. For a
+// points node it also gives the exact `hme path move` command. For
+// a map vertex it gives the lon/lat delta and states plainly that
+// `hme path` cannot move map geometry.
+export function nodeCorrection(nearest, worst, sceneArg, camera) {
+  const c = nearest.candidate;
+  const dx = r1(worst.ref_xy[0] - worst.ours_xy[0]);
+  const dy = r1(worst.ref_xy[1] - worst.ours_xy[1]);
+  const base = {
+    node_id: c.node_id,
+    kind: c.kind,
+    screen_xy: [c.x, c.y],
+    distance_to_worst_px: nearest.distance_px,
+    correction_dx_px: dx,
+    correction_dy_px: dy,
+  };
+  if (c.kind === "points-node") {
+    const outArg = sceneArg.endsWith(".json")
+      ? sceneArg.slice(0, -".json".length) + "-node-fix.json"
+      : sceneArg + "-node-fix.json";
+    const command = `hme path move --scene ${sceneArg} --node ${c.node} --point ${c.point} --dx ${dx} --dy ${dy} --out ${outArg}`;
+    return {
+      ...base,
+      node: c.node,
+      point: c.point,
+      applies_with_hme_path: true,
+      apply_command: command,
+      lon_lat_delta: null,
+      sentence: `Nearest node ${c.node_id} sits at (${c.x}, ${c.y}) px, ${nearest.distance_px} px from the worst point. Move node ${c.node_id} by (${dx}, ${dy}) px: ${command}.`,
+    };
+  }
+  const delta = camera ? screenDeltaToLonLat(camera, c.lon_lat[0], c.lon_lat[1], dx, dy) : null;
+  const deltaText = delta ? ` (about ${delta[0]} degrees lon, ${delta[1]} degrees lat)` : "";
+  return {
+    ...base,
+    country_iso: c.country_iso,
+    country_name: c.country_name,
+    vertex_index: c.vertex_index,
+    polygon_index: c.polygon_index,
+    ring_index: c.ring_index,
+    position_in_ring: c.position_in_ring,
+    lon_lat: c.lon_lat,
+    lon_lat_delta: delta,
+    applies_with_hme_path: false,
+    apply_command: null,
+    sentence: `Nearest node ${c.node_id} sits at (${c.x}, ${c.y}) px, ${nearest.distance_px} px from the worst point. Move node ${c.node_id} by (${dx}, ${dy}) px in frame px${deltaText}. This vertex lives in Natural Earth map geometry, not in a points list, so hme path cannot move it. The outline must first exist as a points shape for hme path move to apply.`,
+  };
 }
 
 // The Python driver. It loads the two PNGs, imports checker.dimensions
@@ -396,6 +657,8 @@ function buildReport(measured, { ref, ours, atS }) {
       unmasked: measured.unmasked,
       worst_point: null,
       neighbours: [],
+      nearest_node: null,
+      nearest_node_reason: "Sudan is absent, so there is no worst outline point to map to a node.",
       cause: `Sudan is absent in ${missingSide}, so there is no outline to measure.`,
       correction: "No outline correction is possible until Sudan is visible in both frames at this second.",
       summary: `Sudan is absent in ${missingSide} at ${atS} s. No contour numbers are reported.`,
@@ -457,10 +720,64 @@ function buildReport(measured, { ref, ours, atS }) {
     unmasked: measured.unmasked,
     worst_point: w,
     neighbours: measured.neighbours,
+    nearest_node: null,
+    nearest_node_reason: "no --scene given, so no node mapping was run",
     cause,
     correction,
     summary,
   };
+}
+
+// Map the worst outline point to the nearest node in the scene and
+// attach it to the report. Throws a named error when the scene file
+// cannot be read or fails validation; a missing GeoJSON file only
+// skips the map-vertex candidates, with the reason recorded.
+export function attachNearestNode(report, sceneArg, atS) {
+  const scenePath = resolve(sceneArg);
+  if (!existsSync(scenePath)) {
+    throw new Error(`hme contour: no such file: ${sceneArg}`);
+  }
+  let scene;
+  try {
+    scene = loadScene(scenePath);
+  } catch (err) {
+    throw new Error(`hme contour: cannot read scene ${sceneArg}: ${err.message}`);
+  }
+  const result = validateScene(scene);
+  if (result.errors.length > 0) {
+    throw new Error(`hme contour: scene ${sceneArg} fails validation: ${result.errors[0].code} ${result.errors[0].path} ${result.errors[0].message}`);
+  }
+  if (!report.worst_point) return;
+  const frame = Math.round(atS * FPS);
+  const notes = [];
+  let candidates = pointsNodeCandidates(scene, frame);
+  let camera = null;
+  const hasMap = (scene.nodes || []).some((n) => n.type === "map");
+  if (hasMap) {
+    if (!existsSync(GEOJSON_PATH) || !existsSync(TOKENS_PATH)) {
+      notes.push("map geometry files are missing, so no map-vertex candidate was checked");
+    } else {
+      const geo = JSON.parse(readFileSync(GEOJSON_PATH, "utf8"));
+      const tokens = JSON.parse(readFileSync(TOKENS_PATH, "utf8"));
+      const mapRes = mapVertexCandidates(scene, frame, tokens, geo.features || []);
+      candidates = candidates.concat(mapRes.candidates);
+      notes.push(...mapRes.notes);
+      const mapNode = scene.nodes.find((n) => n.type === "map");
+      camera = mapCameraAtFrame(mapNode.props, frame, scene.meta.fps,
+        scene.events || [], tokens, geo.features || []).camera;
+    }
+  }
+  const nearest = nearestNode(candidates, report.worst_point.ours_xy[0], report.worst_point.ours_xy[1]);
+  if (!nearest) {
+    report.nearest_node_reason = "the scene holds no editable path node for this outline"
+      + (notes.length > 0 ? `: ${notes.join("; ")}` : "");
+    return;
+  }
+  const correction = nodeCorrection(nearest, report.worst_point, sceneArg, camera);
+  report.nearest_node = correction;
+  report.nearest_node_reason = null;
+  if (notes.length > 0) report.nearest_node.notes = notes;
+  report.correction += ` ${correction.sentence}`;
 }
 
 // Run `hme contour <ref-frame.png> <ours-frame.png> [--at-s <n>] [--out <report.json>]`.
@@ -470,6 +787,7 @@ export async function runContour(argv) {
   const positionals = [];
   let atS = null;
   let outPath = null;
+  let sceneArg = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--at-s") {
@@ -484,6 +802,13 @@ export async function runContour(argv) {
         console.error(USAGE);
         return 2;
       }
+    } else if (a === "--scene") {
+      if (i + 1 >= argv.length) {
+        console.error("hme contour: --scene needs a scene file path");
+        console.error(USAGE);
+        return 2;
+      }
+      sceneArg = argv[++i];
     } else if (a === "--out") {
       if (i + 1 >= argv.length) {
         console.error("hme contour: --out needs a file path");
@@ -519,6 +844,10 @@ export async function runContour(argv) {
     console.error(`hme contour: engine venv Python is missing: ${VENV_PYTHON}`);
     return 2;
   }
+  if (sceneArg && !existsSync(resolve(sceneArg))) {
+    console.error(`hme contour: no such file: ${sceneArg}`);
+    return 2;
+  }
   let atSFrom;
   if (atS === null) {
     atS = parseAtS(refArg);
@@ -535,6 +864,7 @@ export async function runContour(argv) {
   try {
     const measured = await runDriver(refPath, oursPath);
     const report = buildReport(measured, { ref: refArg, ours: oursArg, atS });
+    if (sceneArg) attachNearestNode(report, sceneArg, atS);
     const text = JSON.stringify(report, null, 2) + "\n";
     if (outPath) {
       mkdirSync(dirname(resolve(outPath)), { recursive: true });

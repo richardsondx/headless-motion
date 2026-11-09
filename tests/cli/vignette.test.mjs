@@ -38,10 +38,10 @@ test("vignette --help prints usage, args, options, and an example, and exits 0",
   const r = run(["vignette", "--help"]);
   assert.equal(r.status, 0, r.stderr);
   assert.ok(r.stdout.includes("hme vignette"));
-  assert.ok(r.stdout.includes("Usage: hme vignette <video.mp4> [--out <report.json>]"));
+  assert.ok(r.stdout.includes("Usage: hme vignette <input.mp4> [--out <report.json>]"));
   assert.ok(r.stdout.includes("hme vignette <ref.mp4> <ours.mp4> [--out <report.json>]"));
   assert.ok(r.stdout.includes("Arguments:"));
-  assert.ok(r.stdout.includes("<video.mp4>"));
+  assert.ok(r.stdout.includes("<input.mp4>"));
   assert.ok(r.stdout.includes("<ref.mp4>"));
   assert.ok(r.stdout.includes("<ours.mp4>"));
   assert.ok(r.stdout.includes("Options:"));

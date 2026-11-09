@@ -11,6 +11,8 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateScene, loadScene } from "../scene/validate.mjs";
+import { computeMapState } from "../map/compile.mjs";
+import { cameraMatrix } from "../map/project.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..", "..");
@@ -47,6 +49,162 @@ function resolvePalette(v, palette) {
   return e ? (typeof e === 'string' ? e : e.color) : v;
 }
 
+/** Format a number without float noise: 33.300000000000004 -> "33.3". */
+function fmtNum(n) {
+  return String(Number(Number(n).toFixed(4)));
+}
+
+function hexToRgba(hex, alpha) {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex || "");
+  if (!m) return hex;
+  const v = parseInt(m[1], 16);
+  return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${alpha})`;
+}
+
+/**
+ * Compile a points list to SVG path data. The first point is M. Each
+ * later point draws the segment that arrives at it: line is L, cubic is
+ * C with the previous point's out-handle and this point's in-handle,
+ * smooth is S with this point's in-handle. A null handle reads as its
+ * own anchor. closed appends Z. Numbers go through fmtNum. No
+ * Math.random, no Date, no locale: the same list gives the same d.
+ */
+export function pointsToD(points, closed) {
+  if (!Array.isArray(points) || points.length === 0) return "";
+  const pt = (p) => `${fmtNum(p[0])} ${fmtNum(p[1])}`;
+  const parts = [`M ${pt(points[0].anchor)}`];
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const cur = points[i];
+    const anchor = pt(cur.anchor);
+    if (cur.command === "cubic") {
+      parts.push(`C ${pt(prev.out || prev.anchor)} ${pt(cur.in || cur.anchor)} ${anchor}`);
+    } else if (cur.command === "smooth") {
+      parts.push(`S ${pt(cur.in || cur.anchor)} ${anchor}`);
+    } else {
+      parts.push(`L ${anchor}`);
+    }
+  }
+  if (closed) parts.push("Z");
+  return parts.join(" ");
+}
+
+/** A gradient stop as a CSS color: hex as-is at alpha 1, rgba() otherwise. */
+function stopCss(stop, palette) {
+  const color = resolvePalette(stop.color, palette);
+  const alpha = stop.alpha ?? 1;
+  return alpha === 1 ? color : hexToRgba(color, alpha);
+}
+
+/**
+ * CSS background for a gradient fill, or null when fill is not a gradient.
+ * Linear: angle in degrees, CSS convention (0 = to top, 90 = to right).
+ * Radial: ellipse of radii r*w, r*h px centred at (cx, cy) — the px form
+ * of the SVG objectBoundingBox radial (r is a fraction of the box, so the
+ * SVG circle in unit space is an ellipse rx=r*w, ry=r*h on a non-square
+ * box). Chromium 1248 drops `circle <percentage>` (computed
+ * backgroundImage is `none`), so the size must be in px. Verified
+ * empirically in Chromium 1248 (radial-probe): the ellipse form matches
+ * the SVG radialGradient to max channel diff 1 on square, wide (400x200)
+ * and tall (200x400) boxes; `circle r*sqrt(w^2+h^2)/sqrt(2)` differs by
+ * up to 63 on non-square boxes. On a square box the ellipse reduces to
+ * `circle r*w px` (224px for r=0.7, 320px). Absent / flat fills return
+ * null, so flat nodes keep today's output. `box` is the node box {w, h}.
+ */
+function gradientCss(grad, palette, box) {
+  if (!grad || typeof grad !== "object") return null;
+  const stops = (grad.stops || []).map((s) => `${stopCss(s, palette)} ${fmtNum(s.at * 100)}%`).join(", ");
+  if (grad.type === "linear") return `linear-gradient(${grad.angle}deg, ${stops})`;
+  if (grad.type === "radial") {
+    const cx = fmtNum(grad.cx * 100);
+    const cy = fmtNum(grad.cy * 100);
+    const w = box && box.w > 0 ? box.w : 0;
+    const h = box && box.h > 0 ? box.h : 0;
+    if (w && h) return `radial-gradient(ellipse ${fmtNum(grad.r * w)}px ${fmtNum(grad.r * h)}px at ${cx}% ${cy}%, ${stops})`;
+    return `radial-gradient(circle at ${cx}% ${cy}%, ${stops})`;
+  }
+  return null;
+}
+
+/**
+ * CSS filter for a shape node's glow and/or soft. "" when neither, so flat
+ * nodes get no filter property at all. Glow is a drop-shadow halo (radius
+ * px, colour at intensity alpha); soft blurs the shape itself.
+ */
+function shapeFilterCss(p, palette) {
+  const parts = [];
+  if (p.glow) parts.push(`drop-shadow(0 0 ${p.glow.radius}px ${hexToRgba(resolvePalette(p.glow.color, palette), p.glow.intensity)})`);
+  if (p.soft) parts.push(`blur(${p.soft.radius}px)`);
+  return parts.join(" ");
+}
+
+/**
+ * SVG <filter> for a shape node's glow and/or soft. "" when neither.
+ * stdDeviation is the radius in px (the CSS blur()/drop-shadow() mapping:
+ * the blur radius is the Gaussian stdDeviation). The filter region is
+ * expanded so a halo/blur is not clipped at the shape box. With both,
+ * the shape is blurred first, then the halo is drawn from the blurred
+ * shape (feDropShadow composites its input over its shadow).
+ */
+function shapeSvgFilter(node, palette) {
+  const p = node.props;
+  if (!p.glow && !p.soft) return "";
+  const id = esc(node.id);
+  const ops = [];
+  if (p.soft) ops.push(`<feGaussianBlur in="SourceGraphic" stdDeviation="${p.soft.radius}" result="soft"/>`);
+  if (p.glow) {
+    const color = resolvePalette(p.glow.color, palette);
+    const src = p.soft ? "soft" : "SourceGraphic";
+    ops.push(`<feDropShadow in="${src}" dx="0" dy="0" stdDeviation="${p.glow.radius}" flood-color="${esc(color)}" flood-opacity="${p.glow.intensity}"/>`);
+  }
+  return `<filter id="fx-${id}" x="-100%" y="-100%" width="300%" height="300%">${ops.join("")}</filter>`;
+}
+
+/**
+ * SVG <defs> for one shape node's gradient fill and glow/soft filter.
+ * "" when the node has neither, so flat path nodes keep today's output.
+ * Linear angles use the CSS convention (0 = to top, 90 = to right),
+ * converted to objectBoundingBox x1/y1/x2/y2; radial uses cx/cy/r as
+ * objectBoundingBox fractions, as validated by the schema.
+ */
+function shapeSvgDefs(node, palette) {
+  const p = node.props;
+  const parts = [];
+  if (p.fill && typeof p.fill === "object") {
+    const g = p.fill;
+    const stops = (g.stops || []).map((s) => {
+      const color = resolvePalette(s.color, palette);
+      return `<stop offset="${fmtNum(s.at * 100)}%" stop-color="${esc(color)}" stop-opacity="${s.alpha ?? 1}"/>`;
+    }).join("");
+    if (g.type === "linear") {
+      const rad = (g.angle * Math.PI) / 180;
+      const dx = Math.sin(rad);
+      const dy = -Math.cos(rad);
+      parts.push(`<linearGradient id="grad-${esc(node.id)}" x1="${fmtNum(0.5 - dx / 2)}" y1="${fmtNum(0.5 - dy / 2)}" x2="${fmtNum(0.5 + dx / 2)}" y2="${fmtNum(0.5 + dy / 2)}">${stops}</linearGradient>`);
+    } else if (g.type === "radial") {
+      parts.push(`<radialGradient id="grad-${esc(node.id)}" cx="${fmtNum(g.cx)}" cy="${fmtNum(g.cy)}" r="${fmtNum(g.r)}">${stops}</radialGradient>`);
+    }
+  }
+  const filter = shapeSvgFilter(node, palette);
+  if (filter) parts.push(filter);
+  return parts.length ? `<defs>${parts.join("")}</defs>` : "";
+}
+
+/**
+ * Polygon `d` is "x,y x,y ..." points per the schema, but an SVG <path>
+ * needs M/L/Z commands; the raw points string draws nothing (the browser
+ * reports "Expected moveto path command"). Convert at compile time.
+ * A string that does not parse as points passes through unchanged, so
+ * malformed input fails exactly as before.
+ */
+function polygonToPath(d) {
+  const pts = String(d || "").trim().split(/\s+/).filter(Boolean);
+  if (pts.length < 2) return d;
+  const ok = pts.every((pt) => /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(pt));
+  if (!ok) return d;
+  return `M ${pts[0]} L ${pts.slice(1).join(" L ")} Z`;
+}
+
 function nodeHtml(node, sceneDir, palette) {
   const b = node.box || { x: 0, y: 0, w: 0, h: 0 };
   const base = `data-node="${esc(node.id)}"`;
@@ -57,17 +215,35 @@ function nodeHtml(node, sceneDir, palette) {
   }
   if (node.type === "shape") {
     const p = node.props;
+    // A points list wins over d when present. d stays as the fallback
+    // for traced scenes. Compile here so every path kind shares it.
+    const pointsD = p.points ? pointsToD(p.points, p.closed) : null;
     if (p.kind === "rect" || p.kind === "ellipse") {
       const radius = p.kind === "ellipse" ? "50%" : (p.radius ?? 0) + "px";
-      return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z};border-radius:${radius}"></div>`;
+      // Gradient / glow / soft are appended only when present; with none
+      // of them this string is byte-identical to the pre-change output.
+      const extra = [];
+      const bg = gradientCss(p.fill, palette, b);
+      if (bg) extra.push(`background:${bg}`);
+      const filter = shapeFilterCss(p, palette);
+      if (filter) extra.push(`filter:${filter}`);
+      const tail = extra.length ? `;${extra.join(";")}` : "";
+      return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z};border-radius:${radius}${tail}"></div>`;
     }
-    const d = p.d || "";
-    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><svg width="${b.w}" height="${b.h}" viewBox="0 0 ${b.w} ${b.h}" style="overflow:visible"><path d="${esc(d)}" stroke-linejoin="round" stroke-linecap="round" /></svg></div>`;
+    // Polygon d is "x,y x,y ..." points (schema); SVG path data needs
+    // M/L/Z, so convert at compile time. Path kind keeps its raw d.
+    const d = p.kind === "polygon" ? polygonToPath(p.d || "") : p.d || "";
+    // Gradient defs / filter refs are added only when present; with none
+    // of them this string is byte-identical to the pre-change output.
+    const defs = shapeSvgDefs(node, palette);
+    const fillAttr = p.fill && typeof p.fill === "object" && (p.fill.type === "linear" || p.fill.type === "radial") ? ` fill="url(#grad-${esc(node.id)})"` : "";
+    const filterAttr = p.glow || p.soft ? ` filter="url(#fx-${esc(node.id)})"` : "";
+    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><svg width="${b.w}" height="${b.h}" viewBox="0 0 ${b.w} ${b.h}" style="overflow:visible">${defs}<path d="${esc(pointsD ?? d)}" stroke-linejoin="round" stroke-linecap="round"${fillAttr}${filterAttr} /></svg></div>`;
   }
   if (node.type === "image") {
     const a = resolveAsset(sceneDir, node.props.src);
     const src = a.external ? a.url : a.path && existsSync(a.path) ? dataUri(a.path) : node.props.src;
-    return `<div ${base}><img src="${esc(src)}" style="width:100%;height:100%;object-fit:${node.props.fit || "cover"};display:block" /></div>`;
+    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><img src="${esc(src)}" style="width:100%;height:100%;object-fit:${node.props.fit || "cover"};display:block" /></div>`;
   }
   // map and chart nodes: their module runtimes fill this div per frame.
   if (node.type === "map") {
@@ -75,6 +251,13 @@ function nodeHtml(node, sceneDir, palette) {
   }
   if (node.type === "chart") {
     return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z};color:#14213d"></div>`;
+  }
+  // Particle nodes: their module runtime fills this SVG per frame. The
+  // SVG covers the whole 1920x1080 stage (the stage is that size in the
+  // compiled page) and is shifted back by the node box, so particle x/y,
+  // which are scene px, land in the right place whatever the box is.
+  if (node.type === "particle") {
+    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><svg width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute;left:${-b.x}px;top:${-b.y}px;overflow:visible"></svg></div>`;
   }
   return `<div ${base}></div>`;
 }
@@ -116,6 +299,19 @@ export function compileScene(scene, sceneDir) {
     if (hasKinetic) textRuntime = strip("src/text/runtime.mjs");
     if (hasChart) chartRuntime = strip("src/chart/runtime.mjs");
   }
+  // Particle nodes: bundle the pure evaluator (random + particles, imports
+  // stripped; fmt comes from the evaluator bundle above) plus the in-page
+  // runtime, only when a particle node is present, the same conditional
+  // pattern as map and chart. Scenes without particles compile exactly as
+  // before: no particle code is inlined and the HTML is unchanged.
+  let particleBundle = "";
+  let particleRuntime = "";
+  const hasParticle = scene.nodes.some((n) => n.type === "particle");
+  if (hasParticle) {
+    const strip = (file) => readFileSync(resolve(ROOT, file), "utf8").split("\n").filter((l) => !l.startsWith("import ")).join("\n");
+    particleBundle = strip("src/scene/random.mjs") + "\n" + strip("src/scene/particles.mjs");
+    particleRuntime = strip("src/particle/runtime.mjs");
+  }
   if (errors.length) return { html: "", errors };
 
   const fontCss = scene.fonts
@@ -143,6 +339,24 @@ export function compileScene(scene, sceneDir) {
       if (missing.length) errors.push({ code: "NE_MISSING", path: "/nodes/map/props/geometry", message: `countries not in file: ${missing.join(",")}` });
       const tokens = JSON.parse(readFileSync(resolve(ROOT, "src", "map", "tokens.json"), "utf8"));
       mapData = { geo: { type: "FeatureCollection", features }, props: mapNodes[0].props, tokens, fps: scene.meta.fps, events: scene.events };
+      // Layer cache reference: the widest camera (min zoom) across all
+      // frames. Country paths are drawn once at this camera and mapped per
+      // frame with cameraMatrix (exact: the projection is affine). The
+      // cache is off when HME_MAP_CACHE=0 or when any frame's matrix is
+      // singular (e.g. pitch 90 collapses a dimension).
+      let refCam = null;
+      let mapCache = false;
+      if (process.env.HME_MAP_CACHE !== "0") {
+        const cams = [];
+        for (let f = 0; f < scene.meta.duration; f++) {
+          cams.push(computeMapState(mapNodes[0].props, f, scene.meta.fps, tokens, features, scene.events).camera);
+        }
+        refCam = cams.reduce((best, c) => (c.zoom < best.zoom ? c : best), cams[0]);
+        mapCache = cams.every((c) => cameraMatrix(refCam, c) !== null);
+        if (!mapCache) refCam = null;
+      }
+      mapData.refCam = refCam;
+      mapData.mapCache = mapCache;
       const strip = (file) => readFileSync(resolve(ROOT, file), "utf8").split("\n").filter((l) => !l.startsWith("import ")).join("\n");
       mapBundle = strip("src/shared/color.mjs") + "\n" + strip("src/map/project.mjs") + "\n" + strip("src/map/compile.mjs");
     }
@@ -156,8 +370,8 @@ export function compileScene(scene, sceneDir) {
   const testHang = process.env.HME_TEST_HANG_WAITER === "1" ? "window.__hmeTestHangWaiter=true;" : "";
   const mapRuntime = mapData ? readFileSync(resolve(HERE, "..", "map", "runtime.mjs"), "utf8") : "";
   const mapScript = mapData ? `<script>window.__hmeMapData=${JSON.stringify(mapData)};</script>` : "";
-  const html = `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:1920px;height:1080px;overflow:hidden;background:${bg}}#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:${bg}}${fontCss}</style></head><body><div id="stage">${scene.nodes.map((n) => nodeHtml(n, sceneDir, scene.palette)).join("")}</div><script>${gsap}</script><script>window.__hmeScene=${JSON.stringify(scene)};${testHang}</script>${mapScript}<script type="module">${evaluatorBundle()}\n${mapBundle}\n${textChartBundle}\n${runtime}\n${mapRuntime}\n${textRuntime}\n${chartRuntime}</script></body></html>`;
-  return { html, errors };
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:1920px;height:1080px;overflow:hidden;background:${bg}}#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:${bg}}${fontCss}</style></head><body><div id="stage">${scene.nodes.map((n) => nodeHtml(n, sceneDir, scene.palette)).join("")}</div><script>${gsap}</script><script>window.__hmeScene=${JSON.stringify(scene)};${testHang}</script>${mapScript}<script type="module">${evaluatorBundle()}\n${mapBundle}\n${textChartBundle}\n${particleBundle ? particleBundle + "\n" : ""}${runtime}\n${mapRuntime}\n${textRuntime}\n${chartRuntime}${particleRuntime ? "\n" + particleRuntime : ""}</script></body></html>`;
+  return { html, errors, mapCache: mapData ? mapData.mapCache : false };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

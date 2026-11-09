@@ -22,6 +22,8 @@ import { runTiming } from "./timing.mjs";
 import { runDiagnose } from "./diagnose.mjs";
 import { runColour } from "./colour.mjs";
 import { runContour } from "./contour.mjs";
+import { runLedger } from "./ledger.mjs";
+import { runPath } from "./path.mjs";
 import { runType } from "./type.mjs";
 import { runExtract } from "./extract.mjs";
 import { runContext } from "./context.mjs";
@@ -31,6 +33,8 @@ import { runValidate } from "./validate.mjs";
 import { runGates } from "./gates.mjs";
 import { runVignette } from "./vignette.mjs";
 import { runZoomVelocity } from "./zoom-velocity.mjs";
+import { runFix } from "./fix.mjs";
+import { runRig } from "./rig.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = resolve(HERE, "insight-schema.json");
@@ -187,6 +191,61 @@ export const COMMANDS = [
     example: "hme contour ref-0168.png v5-0168.png --at-s 7 --out out/seg4/contour-7s.json",
   },
   {
+    name: "ledger",
+    summary: "Build and diff coordinate ledgers, one JSON file per video or render.",
+    usage: "hme ledger build --scene <scene.json> --frames <a:b> --out <ledger.json>\n       hme ledger build --video video.mp4 --alias <alias.json> [--frames <a:b>] --out <ledger.json>\n       hme ledger build --frames-dir <dir> --alias <alias.json> [--fps <n>] [--frames <a:b>] --out <ledger.json>\n       hme ledger diff --ref <ledger.json> --ours <ledger.json> [--out <diff.json>]",
+    args: [
+      "build  Write a ledger file from a scene (computed) or a video or frames dir (measured).",
+      "diff  Compare two ledgers and list per-element per-frame deltas plus the worst element.",
+    ],
+    options: [
+      "--scene <file>  Scene file for a computed build. No render is needed. No alias table is used.",
+      "--video <file>  Video file for a measured build. Frames are extracted with ffmpeg at native fps.",
+      "--frames-dir <dir>  Directory of frame PNGs for a measured build, in sorted order.",
+      "--alias <file>  Alias table file (schema hme.alias/1.0). Required for a measured build. A cluster with no entry is listed as unnamed.",
+      "--frames <a:b>  Frame window, a up to but not including b. Default for a scene is 0 up to its duration.",
+      "--fps <n>  Frames per second of a frames dir. Default 24. A video reads its fps from ffprobe.",
+      "--ref <file>  Reference ledger for diff. Required.",
+      "--ours <file>  Our ledger for diff. Required.",
+      "--out <file>  Write the ledger or diff JSON here. Required for build; diff writes to stdout without it.",
+    ],
+    example: "hme ledger build --scene tests/fixtures/seg4-scene-clone-v5.json --frames 0:120 --out out/seg4-computed.json",
+  },
+  {
+    name: "path",
+    summary: "Edit a vector path by node id and write a new versioned scene file.",
+    usage: "hme path <command> --scene <scene.json> --node <node-id> [options] --out <new-scene.json>\n       hme path move --scene <scene.json> --node outline --point p2 --dx 12 --dy 0 --out <new-scene.json>",
+    args: [
+      "move  Move one named node by dx, dy px. Its handles move with it.",
+      "handle  Pull one named handle (in or out) of one node by dx, dy px.",
+      "insert  Insert a new node after a named node, at x, y px.",
+      "delete  Delete one named node. At least one node stays.",
+      "convert  Convert one named node between line, cubic, and smooth.",
+      "smooth  Smooth a run of nodes from one id to another id.",
+      "simplify  Drop run nodes within a px tolerance of the chord.",
+    ],
+    options: [
+      "--scene <file>  Scene file to edit. Required.",
+      "--node <id>  Shape node id that holds the points list. Required.",
+      "--point <id>  Point id to move, pull, delete, or convert.",
+      "--after <id>  Point id to insert after. Required for insert.",
+      "--id <id>  Id for the inserted point. Required for insert.",
+      "--x <n>  X in box-local px for the inserted point. Required for insert.",
+      "--y <n>  Y in box-local px for the inserted point. Required for insert.",
+      "--command <line|cubic|smooth>  Command for the inserted point. Default line.",
+      "--in <x,y>  In-handle for the inserted point. Default null.",
+      "--outh <x,y>  Out-handle for the inserted point. Default null.",
+      "--handle <in|out>  Which handle to pull. Required for handle.",
+      "--dx <n>  Move in x, px. Required for move and handle.",
+      "--dy <n>  Move in y, px. Required for move and handle.",
+      "--to <line|cubic|smooth>  Target command for convert, or last point id of a run for smooth and simplify.",
+      "--from <id>  First point id of a run. Required for smooth and simplify.",
+      "--tolerance <n>  Max px a dropped node may sit from the chord. Required for simplify.",
+      "--out <file>  Where to write the new scene file. Required. Never overwrites an existing file.",
+    ],
+    example: "hme path move --scene tests/fixtures/path-points.json --node outline --point p2 --dx 12 --dy 0 --out /tmp/path-points-v2.json",
+  },
+  {
     name: "type",
     summary: "Measure letterforms in two labels: per-letter overlap, spacing, stroke, and anti-aliasing.",
     usage: "hme type <ref-frames-dir> <ours-frames-dir> --trace <trace.json> [--scene <scene.json>] [--frames <label:side:list>] [--out <report.json>]",
@@ -293,14 +352,49 @@ export const COMMANDS = [
   {
     name: "vignette",
     summary: "Measure whether a video has a vignette, and how strong.",
-    usage: "hme vignette <video.mp4> [--out <report.json>]\n       hme vignette <ref.mp4> <ours.mp4> [--out <report.json>]",
+    usage: "hme vignette <input.mp4> [--out <report.json>]\n       hme vignette <ref.mp4> <ours.mp4> [--out <report.json>]",
     args: [
-      "<video.mp4>  Path to the video to measure (one-video form).",
+      "<input.mp4>  Path to the video to measure (one-video form).",
       "<ref.mp4>  Path to the reference video (pair form).",
       "<ours.mp4>  Path to our rendered video (pair form).",
     ],
     options: ["--out <file>  Write the JSON report here. Without it, the report goes to stdout."],
     example: "hme vignette ref.mp4 ours.mp4 --out out/vignette.json",
+  },
+  {
+    name: "rig",
+    summary: "Define, keyframe, and expand a character rig.",
+    usage: "hme rig define <rig.json> [--out <report.json>]\n       hme rig keyframe <rig.json> --pose <pose-id> --frame <f> --out <keyframes.json>\n       hme rig expand <rig.json> <keyframes.json> --scene <scene.json> --out <expanded-scene.json>",
+    args: [
+      "<rig.json>  Path to the rig file (schema hme.rig/1.0).",
+      "<keyframes.json>  Path to the keyframes file (schema hme.rig-keyframes/1.0).",
+    ],
+    options: [
+      "define    Validate a rig file and report PASS/FAIL.",
+      "keyframe  Record that a pose applies at a frame, in a keyframes file.",
+      "expand    Expand rig poses into flat node and timeline tracks in a scene.",
+      "--pose <id>  Pose id from the rig. Required for keyframe.",
+      "--frame <f>  Frame number. Required for keyframe.",
+      "--scene <file>  Target scene file. Required for expand.",
+      "--out <file>  define: insight report (stdout when absent). keyframe, expand: file to write. Required.",
+    ],
+    example: "hme rig define rig-valid.json",
+  },
+  {
+    name: "fix",
+    summary: "Apply an insight report's corrections to a scene and write a new scene file.",
+    usage: "hme fix --report <report.json> --scene <scene.json> --out <new-scene.json> [--report-out <report.json>] [--dry-run]",
+    args: [],
+    options: [
+      "--report <file>  Insight report JSON (corrections[] plus numbers). Required.",
+      "--scene <file>  Scene file to fix. Required.",
+      "--out <file>  Where to write the fixed scene. Required. Never overwrites an existing file.",
+      "--report-out <file>  Write the JSON report here. Without it, the report goes to stdout. Not written on --dry-run.",
+      "--dry-run  Print the planned edits (the insight report) to stdout and write no file.",
+      "Exit codes: 0 a file was written and the gate passed (or, on --dry-run, the plan passes the gate); 1 the gate failed or every correction was refused (no file written); 2 usage error or an input file cannot be read.",
+      "Values come from the report numbers plus the scene only; the prose fix string is never parsed.",
+    ],
+    example: "hme fix --report out/seg4/timing.json --scene tests/fixtures/seg4-scene-clone-v5.json --out out/seg4/seg4-scene-v6.json --report-out out/seg4/fix.json",
   },
 ];
 
@@ -490,6 +584,12 @@ async function main(argv) {
   if (cmd.name === "contour") {
     return runContour(argv.slice(1));
   }
+  if (cmd.name === "ledger") {
+    return runLedger(argv.slice(1));
+  }
+  if (cmd.name === "path") {
+    return runPath(argv.slice(1));
+  }
   if (cmd.name === "type") {
     return runType(argv.slice(1));
   }
@@ -516,6 +616,12 @@ async function main(argv) {
   }
   if (cmd.name === "zoom-velocity") {
     return runZoomVelocity(argv.slice(1));
+  }
+  if (cmd.name === "fix") {
+    return runFix(argv.slice(1));
+  }
+  if (cmd.name === "rig") {
+    return runRig(argv.slice(1));
   }
   // The command module does not exist yet (units U3 to U9). Say so plainly.
   console.error(`hme ${cmd.name}: not implemented yet`);

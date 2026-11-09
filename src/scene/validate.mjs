@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { checkSchema, pointer } from "./schema-walk.mjs";
 import { flatten, resolveColor, COLOR_PATHS, TRANSFORM_DEFAULTS } from "./evaluate.mjs";
+import { validateRig, RIG_VERSION } from "../rig/validate.mjs";
 
 const SCHEMA_PATH = new URL("./scene.schema.json", import.meta.url);
 export const sceneSchema = JSON.parse(readFileSync(SCHEMA_PATH, "utf8"));
@@ -21,7 +22,7 @@ function schemaLeaves(def, prefix = "props", out = {}) {
   } else out[prefix] = resolved;
   return out;
 }
-const PROPS_DEFS = { text: "textProps", shape: "shapeProps", image: "imageProps" };
+const PROPS_DEFS = { text: "textProps", shape: "shapeProps", image: "imageProps", particle: "particleProps" };
 const FIXED_PATHS = new Set([
   "z", "visible.in", "visible.out", "box.x", "box.y", "box.w", "box.h",
   ...Object.keys(TRANSFORM_DEFAULTS).map((k) => `transform.${k}`),
@@ -44,6 +45,13 @@ export function validateScene(scene) {
     if (errors.length < MAX_ERRORS) errors.push({ code, path: typeof path === "string" ? path : pointer(path), message });
   };
 
+  // A rig file is validated as a rig, not as a scene. `hme validate`
+  // dispatches here, so a rig file needs no CLI change: the CLI report
+  // builder reads meta.id/fps/duration, which the rig format carries.
+  if (scene !== null && typeof scene === "object" && scene.schema === RIG_VERSION) {
+    return validateRig(scene);
+  }
+
   if (scene === null || typeof scene !== "object" || scene.schema !== SCENE_VERSION) {
     const got = scene && typeof scene === "object" ? scene.schema : scene;
     add("SCHEMA_VERSION", ["schema"], `expected "${SCENE_VERSION}", got ${JSON.stringify(got)}`);
@@ -53,6 +61,15 @@ export function validateScene(scene) {
   if (errors.length) return { errors, warnings };
 
   const { nodes, timeline, events, fonts, palette, meta } = scene;
+  // palette.ground may be a gradient: its stop colours must resolve like any flat colour.
+  const ground = palette.ground;
+  if (ground && typeof ground === "object" && Array.isArray(ground.stops)) {
+    ground.stops.forEach((s, j) => {
+      if (resolveColor(s.color, palette) === null) {
+        add("PROP_TYPE", ["palette", "ground", "stops", j, "color"], `"${s.color}" is not a palette name or #rrggbb`);
+      }
+    });
+  }
   const byId = new Map();
   nodes.forEach((n, i) => {
     if (byId.has(n.id)) add("DUP_ID", ["nodes", i, "id"], `node id "${n.id}" already used at /nodes/${byId.get(n.id).index}`);
@@ -82,6 +99,21 @@ export function validateScene(scene) {
     for (const p of COLOR_PATHS) {
       if (p in base && base[p] !== "none" && resolveColor(base[p], palette) === null) {
         add("PROP_TYPE", ["nodes", i, ...p.split(".")], `"${base[p]}" is not a palette name or #rrggbb`);
+      }
+    }
+    if (n.type === "shape") {
+      // Gradient fill: flattened base has props.fill.* leaves, so the COLOR_PATHS
+      // loop above skips it; check each stop colour resolves instead.
+      const fill = n.props.fill;
+      if (fill && typeof fill === "object") {
+        (fill.stops || []).forEach((s, j) => {
+          if (resolveColor(s.color, palette) === null) {
+            add("PROP_TYPE", ["nodes", i, "props", "fill", "stops", j, "color"], `"${s.color}" is not a palette name or #rrggbb`);
+          }
+        });
+      }
+      if (n.props.glow && resolveColor(n.props.glow.color, palette) === null) {
+        add("PROP_TYPE", ["nodes", i, "props", "glow", "color"], `"${n.props.glow.color}" is not a palette name or #rrggbb`);
       }
     }
     if (n.type === "text") checkText(n, i, fonts, byId, add);

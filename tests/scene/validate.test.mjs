@@ -96,6 +96,35 @@ test("map and chart nodes with a companion schema are checked, not warned", () =
   assert.deepEqual(warnings, []);
 });
 
+test("particle-sample prints OK and exits 0", () => {
+  const r = run(new URL("../fixtures/particle-sample.json", import.meta.url).pathname);
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, "OK particle-sample 120 frames 24 fps\n");
+});
+
+test("particle props are required and shape is an enum", () => {
+  const s = JSON.parse(readFileSync(new URL("../fixtures/particle-sample.json", import.meta.url), "utf8"));
+  const missing = JSON.parse(JSON.stringify(s));
+  delete missing.nodes[0].props.count;
+  const e1 = validateScene(missing).errors;
+  assert.equal(e1[0].code, "PROP_TYPE");
+  assert.match(e1[0].message, /missing required field "count"/);
+  const badShape = JSON.parse(JSON.stringify(s));
+  badShape.nodes[1].props.shape = "diamond";
+  const e2 = validateScene(badShape).errors;
+  assert.equal(e2[0].code, "PROP_TYPE");
+  assert.equal(e2[0].path, "/nodes/1/props/shape");
+  assert.match(e2[0].message, /diamond/);
+});
+
+test("a timeline track on a particle node prop validates", () => {
+  const s = JSON.parse(readFileSync(new URL("../fixtures/particle-sample.json", import.meta.url), "utf8"));
+  assert.deepEqual(validateScene(s).errors, []);
+  const typo = JSON.parse(JSON.stringify(s));
+  typo.timeline[0].prop = "props.nope";
+  assert.equal(validateScene(typo).errors[0].code, "UNKNOWN_FIELD");
+});
+
 test("map and chart nodes with no companion schema warn UNCHECKED_PROPS", () => {
   // Move both companion schemas aside, validate, restore in finally.
   const mapSchema = new URL("../../src/map/map.schema.json", import.meta.url).pathname;

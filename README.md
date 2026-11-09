@@ -8,7 +8,48 @@
 
 Motion graphics from JSON scenes. No timeline UI, no manual keyframes.
 
+Headless Motion is a toolkit that lets an AI agent design, build, and check motion graphics entirely in code, with no screen, player, or timeline, so the agent creates and measures animation by numbers instead of watching it.
+
 An agent writes a scene, the engine renders the video, and a checker scores every frame against a reference. The goal is animation on par with top YouTube animation channels, produced end to end without a human opening an editor.
+
+## Proof
+
+The first proof the toolkit works is a 1-to-1 clone of the first 30 seconds of a Kurzgesagt Short. Cloning was the first proof, not the whole tool. The toolkit itself is the general capability: an agent doing motion design headlessly.
+
+<video src="docs/proof/side-by-side-30s.mp4" width="720" controls></video>
+
+Above: the side-by-side video, reference on the left, clone on the right, 30 seconds, 24 fps. Source: Kurzgesagt "Could Humans Evolve Flight?", first 30 seconds, 720p, 60 fps, vertical. Clone: 720x1280, 24 fps, 720 frames, 30.0 seconds.
+
+An independent judge re-verified every number with its own scripts. The verdict is PASS WITH GAPS.
+
+| Gate | Mean SSIM | Mean PSNR | Min SSIM | LPIPS | Frames below 0.90 |
+| --- | --- | --- | --- | --- | --- |
+| Gate 1, first 10 s, 240 frames | 0.9926 | 36.21 dB | 0.9887 | 0.0134 | 0 |
+| Gate 2, full 30 s, 720 frames | 0.9938 | 36.16 dB | 0.9887 | 0.0106 | 0 |
+
+Gate 2 had 0 frames below 0.90 and 0 frames below 0.85. It also measured flat colour max 1.71 Delta E (bar 3) and text shift max 0.5 px (bar 2). The human gate passed on November 9, 2026: the side-by-side was watched at full speed and 0.25x with no visible mismatch. Cost was $0, Muse Spark only.
+
+Proven on one style: flat 2D vector animation. 3D and grain are untested.
+
+### Evidence stills
+
+Side-by-side stills, reference on the left, clone on the right.
+
+![Morph, frame 197](docs/proof/sbs-f197.png)
+![Downstroke, frame 216](docs/proof/sbs-f216.png)
+![Wing fold, frame 516](docs/proof/sbs-f516.png)
+![Thinnest frame, frame 600](docs/proof/sbs-f600.png)
+
+### Difference maps
+
+Absolute difference, amplified 8x. Bright pixels are where the clone differs from the reference. The maps are nearly black, which is the point.
+
+![Difference map, frame 197](docs/proof/diff-f197-8x.png)
+![Difference map, frame 600](docs/proof/diff-f600-8x.png)
+
+### Who did what
+
+Three actors, not two. We built the tools. Muse Spark was the operator that uses them. Headless Motion is the instruments, built specifically so a model can operate them. The model decides. The tools execute. We built the tools so the model could do the job at all.
 
 ## Why headless
 
@@ -150,17 +191,28 @@ Full format docs live in `prompts/01-scene-format.md`. The map module (`src/map/
 
 ## Verification
 
-Every render can be scored against a reference, frame by frame. The checker (`src/checker/`) reports SSIM, PSNR, LPIPS, flat colour difference in CIEDE2000, and a layer layout check: element positions as ratios, distances to frame borders, zoom as a ratio curve, and gaps between elements per layer.
+Every render can be scored against a reference, frame by frame. The checker (`src/checker/`) compares our frames with the reference frames and reports four scores, plus a layer layout check: element positions as ratios, distances to frame borders, zoom as a ratio curve, and gaps between elements per layer.
+
+What the four scores mean, in plain words:
+
+- SSIM: how close the picture matches, from 0 to 1. Higher is closer. 1.00 is identical.
+- PSNR: how clean the picture is, in dB. Higher is cleaner.
+- LPIPS: how different the picture looks to a trained model. Lower is closer. 0 is identical.
+- Flat colour: colour difference in Delta E. Under 3 means the eye cannot tell the colours apart.
 
 ![Write, render, check, fix loop](assets/brand/loop.svg)
 
-The frozen pass bar for the four test segments is:
+A clone passes only if it meets every number in the pass bar for its segment. The pass bar is a target, not a result. It is frozen as pred-v1, so the bar cannot move to make a fail look like a pass.
+
+The four test segments are Kurzgesagt 1, Kurzgesagt 2, TED-Ed glue vs tape, and Search Party map. Kurzgesagt 1 and 2 share the same bar, so they share one row.
 
 | Segment | SSIM | PSNR | LPIPS | Flat colour |
 | --- | --- | --- | --- | --- |
 | Kurzgesagt 1 and 2 | 0.98 | 38 dB | 0.05 | under 3 Delta E |
 | TED-Ed glue vs tape | 0.95 | 35 dB | 0.08 | under 3 Delta E |
 | Search Party map | 0.96 | 35 dB | 0.08 | under 3 Delta E |
+
+For example, the TED-Ed baseline scored SSIM 0.686 against its 0.95 bar, so it fails. The bar tells you what pass means. The scores in [BENCHMARKS.md](BENCHMARKS.md) tell you what we actually measured.
 
 A render also has to be deterministic: two runs of the same profile give a byte identical video. The checker never scores a frame it has already seen with a lowered bar.
 
@@ -208,22 +260,9 @@ Research preview. What is true today:
 - Fourteen measurement commands are built under one `hme` CLI, each returning a verdict, numbers, a correction in scene terms, and its limits.
 - Five authoring capabilities are being built to close the gaps the measurement tools found: character rig, illustration tracing, gradients and glow, particle system, and automated fixing.
 
-## Recent benchmarks
+## Benchmarks
 
-Measured November 8, 2026, against the frozen bar (pred-v1: mean SSIM at least 0.95, every frame at least 0.90, PSNR at least 35 dB, LPIPS at most 0.08, flat colour under 3 Delta E, motion under 2 px, text shift under 2 px). "Claimed" means the generator measured it and the independent verifier and judge have not confirmed it yet. "Judge confirmed" means they recomputed it and agreed.
-
-| Test | SSIM | PSNR | LPIPS | Verdict |
-| --- | --- | --- | --- | --- |
-| Seg3 baseline, old code-drawn rebuild | 0.686 | 9.96 dB | 0.656 | Fail, judge confirmed |
-| Seg3 single-frame VTracer trace | 0.967 | 26.09 dB | 0.156 | Trace only, judge confirmed |
-| Seg3 flow warp, 1 frame apart | 0.999 | 52.93 dB | 0.0004 | Warp only, judge confirmed |
-| Ozempic clone, Gate 1, first 10 s, v8 | 0.994 | 39.80 dB | 0.015 | Claimed pass, standard profile |
-| Ozempic clone, Gate 2, first 30 s, v8 | 0.993 | 37.39 dB | 0.015 | Claimed pass, standard profile |
-| Ozempic clone, Gate 3, full 75 s, light check | 0.990 | 37.86 dB | Unmeasured | Light check only, LPIPS still running |
-| Seg4 map clone, v5, 192 frames | 0.794 | 20.21 dB | 0.631 | Fail, measured |
-| Seg4 map clone, v6, 192 frames | 0.996 | 41.13 dB | 0.025 | Pass, agent-measured, LPIPS every 8th frame |
-
-Before and after, on the same Ozempic clone: Gate 1 went from v1 SSIM 0.903 and PSNR 17.78 dB, with 105 frames below the floor, to v8 SSIM 0.994 and PSNR 39.80 dB, with 0 frames below the floor. Gate 2 went from PSNR 33.99 dB, failing by 1.01 dB, to 37.39 dB in v8. The Seg4 map retest with the new tools passed on every bar: SSIM 0.794 to 0.996, PSNR 20.21 dB to 41.13 dB, LPIPS 0.631 to 0.025, and the badge at 5.0 s went from 170.9 px off to 0.1 px off. That clone is trace-based, not a code-drawn scene, so it proves the teardown to trace to check pipeline.
+Recent results live in [BENCHMARKS.md](BENCHMARKS.md). It holds the November 8, 2026 scores against the frozen bar, with claimed vs judge confirmed marked. Full method and history live in [benchmark/README.md](benchmark/README.md).
 
 Roadmap: finish the five authoring capabilities, then the Seg4 v5 true clone, then ten new sequences with a side by side play page, then a native Skia renderer that drops the browser entirely.
 
@@ -236,6 +275,10 @@ Pushes go through the GitHub git database API, because the stored GitHub credent
   --repo richardsondx/headless-motion --branch main --message "msg" \
   $(git ls-files | awk '{print $1"="$1}')
 ```
+
+## Author
+
+Created by Richardson Dackam, Toronto, 2026.
 
 ## License
 

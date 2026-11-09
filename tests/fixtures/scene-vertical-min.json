@@ -1,0 +1,100 @@
+{
+  "events": [
+    {
+      "f": 24,
+      "id": "bar-arrives",
+      "note": "bar reaches its far position"
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Montserrat",
+      "src": "fonts/Montserrat-Bold.ttf",
+      "weight": 700
+    }
+  ],
+  "meta": {
+    "duration": 48,
+    "fps": 24,
+    "height": 1920,
+    "id": "scene-vertical-min",
+    "notes": "Minimum vertical fixture: one text, one shape, one 3-key track. Mirrors scene-min.json at 1080x1920. Fonts v2 (2026-11-07): Montserrat Bold.",
+    "register": "dark",
+    "seed": 1337,
+    "width": 1080
+  },
+  "nodes": [
+    {
+      "box": {
+        "h": 160,
+        "w": 920,
+        "x": 80,
+        "y": 120
+      },
+      "id": "title",
+      "parent": null,
+      "props": {
+        "align": "left",
+        "color": "ink",
+        "font": {
+          "family": "Montserrat",
+          "letterSpacing": -2,
+          "lineHeight": 1.1,
+          "size": 64,
+          "weight": 700
+        },
+        "text": "Vertical motion engine"
+      },
+      "type": "text",
+      "z": 2
+    },
+    {
+      "box": {
+        "h": 200,
+        "w": 200,
+        "x": 80,
+        "y": 900
+      },
+      "id": "bar",
+      "parent": null,
+      "props": {
+        "fill": "accent",
+        "kind": "rect",
+        "radius": 24
+      },
+      "type": "shape",
+      "z": 1
+    }
+  ],
+  "palette": {
+    "accent": {
+      "color": "#e8a33d",
+      "source": 0
+    },
+    "ground": "#101820",
+    "ink": "#f4f1ea"
+  },
+  "schema": "hme.scene/1.0",
+  "timeline": [
+    {
+      "keys": [
+        {
+          "f": 0,
+          "v": 0
+        },
+        {
+          "ease": "easeInOutCubic",
+          "f": 24,
+          "v": 600
+        },
+        {
+          "ease": "easeOutQuint",
+          "f": 48,
+          "v": 300
+        }
+      ],
+      "node": "bar",
+      "prop": "transform.x"
+    }
+  ]
+}
