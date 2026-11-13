@@ -101,6 +101,7 @@ One `hme` command measures one thing, and every measurement returns the same sha
 | Compare | `hme compare` | Full frame scores: SSIM, PSNR, LPIPS, flat colour | In use |
 | Diagnose | `hme diagnose` | Names the kind of error and the fix, from a frame pair | In use |
 | Trace | `hme trace` | Profiles a video: palette, labels, trajectories, cuts | In use |
+| Frame style | `hme frame-style` | Pace per frame plus a plain-language style prompt | Built, test passing |
 | Control | `hme control` | The ceiling a perfect clone can reach, by re-encoding our own video | In use |
 | Extract | `hme extract` | Cuts a pixel region out of a reference frame, such as the rifle | In use |
 | Fonts | `hme fonts` | Ranks free fonts by glyph shape against a reference label | In use |
@@ -128,6 +129,24 @@ These close the gaps the measurement tools found in the Kurzgesagt "Alcohol is A
 | Automated fixing | Reads a measurement report and applies the correction to the scene, writing a new versioned file, never editing in place | 60%, five fixer functions done |
 
 A note on scope: the rig proves the mechanism with simple shapes. A faithful character still needs traced shapes for hair, face shading, and clothing, which is the tracing run's job. The two runs compose; neither replaces the other.
+
+## Frame style, code models, and the frame 184 grids
+
+### Mapping a reference to numbers
+
+`hme trace` maps a reference video to a style profile. It measures palette colors, label positions, per-color trajectories, cuts, zoom, and easing from the frames. The profile gives a code model numbers to write from instead of guesses. Run it as `node tools/map-frames.mjs <video.mp4> --start-s <n> --end-s <n> --out <dir>`.
+
+### Turning measurements into words
+
+`hme frame-style` watches a reference video frame by frame for a set window. It measures pace as changed fraction, mean change per second, and longest static run. It writes a plain-language prompt from those numbers only, so another model can reproduce the style from text alone. The prompt names the window, the frame count, the changed fraction, and the mean change per second. On the 24-frame Headless Motion descent clip, it reads 24 frames at 24 fps with a changed fraction of 0.3478. Run it as `node tools/frame-style.mjs <video.mp4> --start-s <n> --end-s <n> --out <prompt.md>`. Both tools are also MCP tools, so an agent can call `trace` and `frame-style` through `hme mcp`.
+
+### Code model plus Headless Motion
+
+A code model writes scene JSON from the frame-to-style measurements. Headless Motion renders that JSON deterministically, so the same scene gives the same video every time. The combination wins on motion and exactness, not on drawing. The frame 184 experiment proved motion correct. The descent measured 50.3 px against 57.3 px expected, and the hold measured exactly 95.2 px. It proved gradient and colors exact: the code models reproduced all 5 measured RGB stops. Drawing stays the bottleneck. The Headless Motion figure measured 0.570 of frame width against the 0.60 target. That gap equals about half a limb thickness per side.
+
+### Comparison grids
+
+The frame 184 grids gave every model the same prompt v8, unchanged. Image models draw pixels, so the pose flows but the crop fails. Code models write code, so the gradient stays exact but the pose stiffens. Measured figure widths against the 0.60 target: Flare 0.548, Sunburst 0.533, Fable 0.39, Terra 0.22, Headless Motion 0.570. Both image models drew the full head, so both missed the crown crop. Both code models hung the arms at their sides, so both missed the stance and the width. Every render got the gradient right, with no sun and no added shape. The comparison cost about $1.64 across 8 model generations. Fable needed 4 tries, because reasoning consumed the whole token budget 3 times before effort-low produced an SVG. Grids live in `study/frame184-comparison/` with the comparison log and the Fable feedback.
 
 ## What it renders
 
@@ -257,7 +276,7 @@ Research preview. What is true today:
 - The checker runs with LPIPS on every frame.
 - The layer layout check is built and measured: 31 seconds for four paired stills.
 - The fast render path (map layer cache, frame dedup, real-time preview) is built and measured: map final 242.6 s to 57.0 s, byte-identical across runs.
-- Fourteen measurement commands are built under one `hme` CLI, each returning a verdict, numbers, a correction in scene terms, and its limits.
+- Fifteen measurement commands are built under one `hme` CLI, each returning a verdict, numbers, a correction in scene terms, and its limits.
 - Five authoring capabilities are being built to close the gaps the measurement tools found: character rig, illustration tracing, gradients and glow, particle system, and automated fixing.
 
 ## Benchmarks
