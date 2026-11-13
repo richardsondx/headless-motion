@@ -26,10 +26,12 @@ const ROOT = resolve(HERE, "..", "..");
 export function loadMapContext(scene) {
   const mapNode = scene.nodes.find((n) => n.type === "map");
   if (!mapNode) return null;
-  const geo = JSON.parse(readFileSync(resolve(ROOT, "assets", "natural-earth", "ne_10m_admin_0_countries.geojson"), "utf8"));
+  const geoRel = (mapNode.props.geometry && mapNode.props.geometry.countries) || "assets/natural-earth/ne_10m_admin_0_countries.geojson";
+  const geoKey = (mapNode.props.geometry && mapNode.props.geometry.key) || "ISO_A3";
+  const geo = JSON.parse(readFileSync(resolve(ROOT, geoRel), "utf8"));
   const tokens = JSON.parse(readFileSync(resolve(ROOT, "src", "map", "tokens.json"), "utf8"));
   const include = [...new Set(mapNode.props.geometry.include || [])];
-  return { features: geo.features.filter((f) => include.includes(f.properties.ISO_A3)), tokens, props: mapNode.props };
+  return { features: geo.features.filter((f) => include.includes(f.properties[geoKey])), tokens, props: mapNode.props };
 }
 
 export function visualKey(scene, frame, mapCtx) {

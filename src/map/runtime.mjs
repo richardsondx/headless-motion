@@ -18,7 +18,8 @@
   const labelLayer = node.querySelector(".map-labels");
   const NS = "http://www.w3.org/2000/svg";
   const geo = data.geo.features;
-  const byIso = new Map(geo.map((f) => [f.properties.ISO_A3, f]));
+  const geoKey = (data.props.geometry && data.props.geometry.key) || "ISO_A3";
+  const byIso = new Map(geo.map((f) => [f.properties[geoKey], f]));
 
   // Build static SVG structure once.
   svg.innerHTML = "";
@@ -113,7 +114,7 @@
   svg.appendChild(baseG);
   const paths = new Map();
   for (const feature of geo) {
-    const iso = feature.properties.ISO_A3;
+    const iso = feature.properties[geoKey];
     const casing = document.createElementNS(NS, "path");
     const main = document.createElementNS(NS, "path");
     casing.setAttribute("vector-effect", "non-scaling-stroke");
@@ -164,7 +165,7 @@
     bar.textContent = badge.label;
     bar.style.cssText = "background:#14213d;color:#fff;font-weight:700;font-family:'Montserrat',sans-serif;letter-spacing:0.06em;font-size:28px;padding:4px 8px;margin-top:6px;";
     wrap.appendChild(hex);
-    wrap.appendChild(bar);
+    if (badge.label) wrap.appendChild(bar); // empty label: marker only, the name rides on a label pill
     labelLayer.appendChild(wrap);
     badgeEls.set(badge.id, wrap);
   }
@@ -230,6 +231,7 @@
       casingPath.setAttribute("stroke-width", "8");
       casingPath.setAttribute("stroke-linecap", "round");
       casingPath.setAttribute("fill", "none");
+      if (route.dashed) casingPath.setAttribute("stroke-dasharray", "10 8");
       routeGroup.appendChild(casingPath);
       const segs = pts.length - 1;
       for (let i = 0; i < segs; i++) {
@@ -241,6 +243,7 @@
         p.setAttribute("stroke-width", String((5 - (3 * i) / segs).toFixed(1)));
         p.setAttribute("stroke-linecap", "round");
         p.setAttribute("fill", "none");
+        if (route.dashed) p.setAttribute("stroke-dasharray", "10 8");
         routeGroup.appendChild(p);
       }
       const head = projectPoint(route.head[0], route.head[1], cam);
@@ -256,10 +259,11 @@
       el.style.display = label.visible ? "" : "none";
       if (!label.visible) continue;
       const [x, y] = label.screen;
-      const oy = label.mode === "leader" ? (label.dy ?? -70) : 0; // dy is a scene value in px; default -70 keeps the pill just above its point.
+      const oy = (label.mode === "leader" || label.mode === "bare") ? (label.dy ?? -70) : 0; // dy is a scene value in px; default -70 keeps the pill just above its point.
+      const ox = (label.mode === "leader" || label.mode === "bare") ? (label.dx ?? 0) : 0; // dx is a scene value in px; offsets the pill sideways, the leader then runs to the pill centre (hidden under the pill).
       if (label.mode === "leader") {
         const line = document.createElementNS(NS, "path");
-        line.setAttribute("d", "M" + x.toFixed(1) + " " + y.toFixed(1) + " L" + x.toFixed(1) + " " + (y + oy + 40).toFixed(1)); // dashed leader ends at the pill bottom (pill is ~78 px tall, half ~40)
+        line.setAttribute("d", "M" + x.toFixed(1) + " " + y.toFixed(1) + " L" + (x + ox).toFixed(1) + " " + (y + oy + (ox ? 0 : 40)).toFixed(1)); // dashed leader ends at the pill bottom (pill is ~78 px tall, half ~40)
         line.setAttribute("stroke", "#14213d");
         line.setAttribute("stroke-width", "3");
         line.setAttribute("stroke-dasharray", "6 4");
@@ -274,10 +278,12 @@
         pin.setAttribute("stroke-width", "3");
         leaderGroup.appendChild(pin);
       }
-      el.style.left = x + "px";
+      el.style.left = x + ox + "px";
       el.style.top = y + oy + "px";
       el.style.fontSize = "48px";
       el.style.fontFamily = "'" + fontFamily + "', sans-serif";
+      // bare mode: caps text only, navy on the declared ground, no pill.
+      if (label.mode === "bare") { el.style.background = "transparent"; el.style.color = "#14213d"; }
     }
     for (const badge of state.badges) {
       const el = badgeEls.get(badge.id);

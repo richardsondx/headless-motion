@@ -139,6 +139,20 @@ function shapeFilterCss(p, palette) {
 }
 
 /**
+ * CSS filter for an image node's filter. "" when none, so unfiltered
+ * images keep today's output byte-identical. Grayscale first, then
+ * blur, the same order the shape builder uses (drop-shadow then blur).
+ */
+function imageFilterCss(p) {
+  const f = p.filter;
+  if (!f) return "";
+  const parts = [];
+  if (f.grayscale !== undefined) parts.push(`grayscale(${fmtNum(f.grayscale)})`);
+  if (f.blur !== undefined) parts.push(`blur(${fmtNum(f.blur)}px)`);
+  return parts.join(" ");
+}
+
+/**
  * SVG <filter> for a shape node's glow and/or soft. "" when neither.
  * stdDeviation is the radius in px (the CSS blur()/drop-shadow() mapping:
  * the blur radius is the Gaussian stdDeviation). The filter region is
@@ -243,7 +257,9 @@ function nodeHtml(node, sceneDir, palette) {
   if (node.type === "image") {
     const a = resolveAsset(sceneDir, node.props.src);
     const src = a.external ? a.url : a.path && existsSync(a.path) ? dataUri(a.path) : node.props.src;
-    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><img src="${esc(src)}" style="width:100%;height:100%;object-fit:${node.props.fit || "cover"};display:block" /></div>`;
+    const filter = imageFilterCss(node.props);
+    const filterAttr = filter ? `;filter:${filter}` : "";
+    return `<div ${base} style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;z-index:${node.z}"><img src="${esc(src)}" style="width:100%;height:100%;object-fit:${node.props.fit || "cover"};display:block${filterAttr}" /></div>`;
   }
   // map and chart nodes: their module runtimes fill this div per frame.
   if (node.type === "map") {
@@ -321,21 +337,24 @@ export function compileScene(scene, sceneDir) {
       return `@font-face{font-family:'${font.family}';font-weight:${font.weight};src:url(${url}) format('truetype');}`;
     })
     .join("\n");
-  // Map nodes: embed the included Natural Earth countries, tokens, and
-  // the map bundle (color + project + compile, imports stripped) so the
-  // in-page runtime can draw the map per frame. Missing file is NE_MISSING.
+  // Map nodes: embed the included Natural Earth geometry (countries by
+  // default, or the file named in props.geometry.countries, e.g. the US
+  // states file), tokens, and the map bundle so the in-page runtime can
+  // draw the map per frame. Missing file is NE_MISSING.
   let mapData = null;
   let mapBundle = "";
   const mapNodes = scene.nodes.filter((n) => n.type === "map");
   if (mapNodes.length) {
-    const geoPath = resolve(ROOT, "assets", "natural-earth", "ne_10m_admin_0_countries.geojson");
+    const geoRel = (mapNodes[0].props.geometry && mapNodes[0].props.geometry.countries) || "assets/natural-earth/ne_10m_admin_0_countries.geojson";
+    const geoKey = (mapNodes[0].props.geometry && mapNodes[0].props.geometry.key) || "ISO_A3";
+    const geoPath = resolve(ROOT, geoRel);
     if (!existsSync(geoPath)) {
-      errors.push({ code: "NE_MISSING", path: "/nodes/map/props/geometry", message: "Natural Earth file not found: assets/natural-earth/ne_10m_admin_0_countries.geojson" });
+      errors.push({ code: "NE_MISSING", path: "/nodes/map/props/geometry", message: `Natural Earth file not found: ${geoRel}` });
     } else {
       const geo = JSON.parse(readFileSync(geoPath, "utf8"));
       const include = [...new Set(mapNodes.flatMap((n) => n.props.geometry.include || []))];
-      const features = geo.features.filter((f) => include.includes(f.properties.ISO_A3));
-      const missing = include.filter((iso) => !features.some((f) => f.properties.ISO_A3 === iso));
+      const features = geo.features.filter((f) => include.includes(f.properties[geoKey]));
+      const missing = include.filter((iso) => !features.some((f) => f.properties[geoKey] === iso));
       if (missing.length) errors.push({ code: "NE_MISSING", path: "/nodes/map/props/geometry", message: `countries not in file: ${missing.join(",")}` });
       const tokens = JSON.parse(readFileSync(resolve(ROOT, "src", "map", "tokens.json"), "utf8"));
       mapData = { geo: { type: "FeatureCollection", features }, props: mapNodes[0].props, tokens, fps: scene.meta.fps, events: scene.events };

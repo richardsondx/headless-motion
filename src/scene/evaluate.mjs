@@ -173,6 +173,42 @@ function finish(raw) {
 }
 
 /**
+ * Scene-level composition camera: {zoom, center [x, y]} in scene px.
+ * Static base comes from scene.camera, or the frame centre at zoom 1
+ * when the scene has no camera. Tracks with node "camera" animate it:
+ * prop "zoom" (number), "center" ([x, y] array), or "center.x" /
+ * "center.y" (numbers). The key is present in the result only when the
+ * scene has a camera or a camera track, so scenes without a camera
+ * sample exactly as before.
+ */
+export function sampleCamera(scene, frame) {
+  const tracks = (scene.timeline || []).filter((t) => t.node === "camera");
+  if (scene.camera === undefined && tracks.length === 0) return null;
+  const w = scene.meta.width;
+  const h = scene.meta.height;
+  const state = {
+    zoom: 1,
+    "center.x": w / 2,
+    "center.y": h / 2,
+  };
+  if (scene.camera !== undefined) {
+    state.zoom = scene.camera.zoom;
+    state["center.x"] = scene.camera.center[0];
+    state["center.y"] = scene.camera.center[1];
+  }
+  for (const track of tracks) {
+    const raw = sampleTrack(track, frame, false, scene.palette);
+    if (track.prop === "center") {
+      state["center.x"] = raw[0];
+      state["center.y"] = raw[1];
+    } else {
+      state[track.prop] = raw;
+    }
+  }
+  return { zoom: fmt(state.zoom), center: [fmt(state["center.x"]), fmt(state["center.y"])] };
+}
+
+/**
  * @param {object} scene a validated scene
  * @param {number} frame integer frame
  * @returns {Record<string, Record<string, any>>} {nodeId: {dottedProp: value}}
@@ -184,6 +220,8 @@ export function sampleScene(scene, frame) {
   for (const track of scene.timeline) (tracksByNode[track.node] ||= []).push(track);
 
   const result = {};
+  const camera = sampleCamera(scene, frame);
+  if (camera) result.camera = camera;
   for (const node of scene.nodes) {
     const state = {
       z: node.z,

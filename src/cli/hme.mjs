@@ -18,6 +18,7 @@ import { runFonts } from "./fonts.mjs";
 import { runControl } from "./control.mjs";
 import { runPlayerPass } from "./player-pass.mjs";
 import { runTrace } from "./trace.mjs";
+import { runFrameStyle } from "./frame-style.mjs";
 import { runTiming } from "./timing.mjs";
 import { runDiagnose } from "./diagnose.mjs";
 import { runColour } from "./colour.mjs";
@@ -30,9 +31,12 @@ import { runContext } from "./context.mjs";
 import { runMcp } from "./mcp.mjs";
 import { runRender } from "./render.mjs";
 import { runValidate } from "./validate.mjs";
+import { runExport } from "./export.mjs";
 import { runGates } from "./gates.mjs";
 import { runVignette } from "./vignette.mjs";
 import { runZoomVelocity } from "./zoom-velocity.mjs";
+import { runGradient } from "./gradient.mjs";
+import { runComposition } from "./composition.mjs";
 import { runFix } from "./fix.mjs";
 import { runRig } from "./rig.mjs";
 
@@ -70,6 +74,21 @@ export const COMMANDS = [
     args: ["<scene.json>  Path to the scene file."],
     options: ["--out <file>  Write the JSON report here. Without it, the report goes to stdout."],
     example: "hme validate tests/fixtures/seg4-scene-clone-v5.json",
+  },
+  {
+    name: "export",
+    summary: "Export a scene or a video to an EffectCraft .ecproj file.",
+    usage: "hme export <scene.json> --to ecproj --out <file.ecproj> [--report <report.json>]\n       hme export <input.mp4> --to ecproj --out <file.ecproj> [--report <report.json>]",
+    args: [
+      "<scene.json>  Path to the scene file.",
+      "<input.mp4>  Path to a video file. Frames are extracted with ffmpeg to a frames folder next to the .ecproj file, and the .ecproj file holds one Sequence footage item plus one comp.",
+    ],
+    options: [
+      "--to <format>  Export format. Only ecproj is supported. Required.",
+      "--out <file>  Write the .ecproj file here. Required.",
+      "--report <file>  Write the JSON report here. Without it, the report goes to stdout.",
+    ],
+    example: "hme export tests/fixtures/scene-min.json --to ecproj --out out/scene-min.ecproj",
   },
   {
     name: "gates",
@@ -131,6 +150,22 @@ export const COMMANDS = [
       "--labels <text,...>  Label texts to record, for example SUDAN,EL FASHER.",
     ],
     example: "hme trace ref.mp4 --start-s 0 --end-s 8 --skip-traces --out out/seg4/",
+  },
+  {
+    name: "frame-style",
+    summary: "Measure a video frame by frame and write a plain-language style prompt from the pace numbers.",
+    usage: "hme frame-style <video.mp4> --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]",
+    args: ["<video.mp4>  Path to the reference video."],
+    options: [
+      "--start-s <n>  Start time in seconds. Required.",
+      "--end-s <n>  End time in seconds. Required, and after --start-s.",
+      "--out <file>  Write the style prompt here. Required.",
+      "--report <file>  Write the JSON insight report here. Without it, the report goes to stdout.",
+      "--csv <file>  Write one row per frame (frame, time, mean_abs_diff, changed). Without it, no CSV is written.",
+      "--fps <n>  Frames per second to extract at. Default: the video native fps from ffprobe.",
+      "Proof: on the 24-frame Headless Motion descent clip (24 fps, 1.0 s, 480p) the tool reads 24 frames, a changed fraction of 0.3478, and a longest static run of 15 frames.",
+    ],
+    example: "hme frame-style ref.mp4 --start-s 0 --end-s 20 --out out/style-prompt.md --csv out/style-frames.csv",
   },
   {
     name: "timing",
@@ -328,7 +363,7 @@ export const COMMANDS = [
     args: [],
     options: [
       "Reads JSON-RPC 2.0 requests, one per line, on stdin and writes one response per line on stdout. No other output goes to stdout.",
-      "Tools: compare, trace, diagnose, control, extract, fonts, player-pass, context. Resources: hme://predicate, hme://ceiling, hme://rules/map, hme://schema/scene.",
+      "Tools: compare, trace, diagnose, control, extract, fonts, player-pass, context, frame-style. Resources: hme://predicate, hme://ceiling, hme://rules/map, hme://schema/scene.",
     ],
     example: "hme mcp",
   },
@@ -360,6 +395,41 @@ export const COMMANDS = [
     ],
     options: ["--out <file>  Write the JSON report here. Without it, the report goes to stdout."],
     example: "hme vignette ref.mp4 ours.mp4 --out out/vignette.json",
+  },
+  {
+    name: "gradient",
+    summary: "Measure the vertical colour gradient of one frame: slope top to bottom per channel plus a falloff curve.",
+    usage: "hme gradient <frame.png> [--region <x,y,w,h>] [--bands <n>] [--at-s <n>] [--fps <n>] [--out <report.json>]",
+    args: [
+      "<frame.png>  One frame image (PNG).",
+    ],
+    options: [
+      "--region <x,y,w,h>  Pixel rect to measure, in full-frame coords. Default: the whole frame. Use it to measure only the sky and keep a subject or a dark band out of the slope.",
+      "--bands <n>  How many horizontal bands to split the region into. Default 10.",
+      "--at-s <n>  Time in seconds of the frame. When absent, it is derived from the frame name: frame-360.png means frame 360 at --fps, real-7s.png means 7 s.",
+      "--fps <n>  Frames per second for a frame-N name. Default 60.",
+      "--out <file>  Write the JSON report here. Without it, the report goes to stdout.",
+      "Proof: on real frame 360 the tool must read top median near RGB (132, 172, 254), bottom median near (75, 94, 241), green drop near 78, red near 57. On a batch 1 frame it must read a flat sky (drop near 0) and name the abrupt step into the dark band (34, 9, 81).",
+    ],
+    example: "hme gradient frame-360.png --at-s 6 --out out/gradient-360.json",
+  },
+  {
+    name: "composition",
+    summary: "Measure the subject box of one frame: box share, margins, thirds position, and eye placement.",
+    usage: "hme composition <frame.png> [--threshold <n>] [--at-s <n>] [--fps <n>] [--expect <w_pct,h_pct>] [--tolerance <n>] [--out <report.json>]",
+    args: [
+      "<frame.png>  One frame image (PNG).",
+    ],
+    options: [
+      "--threshold <n>  RGB distance from the row background that counts as subject. Default 40.",
+      "--at-s <n>  Time in seconds of the frame. When absent, it is derived from the frame name: frame-360.png means frame 360 at --fps, real-7s.png means 7 s.",
+      "--fps <n>  Frames per second for a frame-N name. Default 60.",
+      "--expect <w_pct,h_pct>  Expected box shares in percent, for example 70,36. When given, the verdict is PASS only when both measured shares sit within --tolerance points of these.",
+      "--tolerance <n>  Allowed gap in percentage points between a measured share and its expected share. Default 5.",
+      "--out <file>  Write the JSON report here. Without it, the report goes to stdout.",
+      "Proof: on batch 1 S1 the tool reads 45.3 percent wide, 68.3 percent tall, within 0.3 points of the stated 45 and 68. On real frame 360 the tool reads 93.9 percent wide, 13.3 percent tall, against the stated 70 and 36, so --expect 70,36 fails on frame 360. The stated frame 360 box does not reproduce from the pixels; see units/K/tool-report.md.",
+    ],
+    example: "hme composition frame-360.png --expect 70,36 --at-s 6 --out out/composition-360.json",
   },
   {
     name: "rig",
@@ -572,6 +642,9 @@ async function main(argv) {
   if (cmd.name === "trace") {
     return runTrace(argv.slice(1));
   }
+  if (cmd.name === "frame-style") {
+    return runFrameStyle(argv.slice(1));
+  }
   if (cmd.name === "timing") {
     return runTiming(argv.slice(1));
   }
@@ -605,6 +678,9 @@ async function main(argv) {
   if (cmd.name === "validate") {
     return runValidate(argv.slice(1));
   }
+  if (cmd.name === "export") {
+    return runExport(argv.slice(1));
+  }
   if (cmd.name === "gates") {
     return runGates(argv.slice(1));
   }
@@ -622,6 +698,12 @@ async function main(argv) {
   }
   if (cmd.name === "rig") {
     return runRig(argv.slice(1));
+  }
+  if (cmd.name === "gradient") {
+    return runGradient(argv.slice(1));
+  }
+  if (cmd.name === "composition") {
+    return runComposition(argv.slice(1));
   }
   // The command module does not exist yet (units U3 to U9). Say so plainly.
   console.error(`hme ${cmd.name}: not implemented yet`);

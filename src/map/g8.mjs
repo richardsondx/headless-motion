@@ -5,6 +5,7 @@ import { contrastRatio, luminance } from "../shared/color.mjs";
 
 const PILL = "#14213D";
 const TEXT = "#FFFFFF";
+const BARE_TEXT = "#14213D";
 const CASING = "#14213D";
 
 export function checkG8(states, tokens) {
@@ -17,7 +18,9 @@ export function checkG8(states, tokens) {
         failures.push({ code: "NAKED_LABEL", frame: f, detail: `label ${label.id} has no ground` });
         continue;
       }
-      const ratio = contrastRatio(TEXT, label.ground);
+      // bare labels render navy text on their declared ground, at the same 7:1 bar.
+      const text = label.mode === "bare" ? BARE_TEXT : TEXT;
+      const ratio = contrastRatio(text, label.ground);
       if (ratio < 7) failures.push({ code: "G8_TEXT", frame: f, detail: `label ${label.id} text on ${label.ground} ${ratio.toFixed(2)}:1, needs 7:1` });
     }
     for (const route of state.routes) {

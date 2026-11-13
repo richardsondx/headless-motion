@@ -112,9 +112,11 @@
      "enum": [
       "pill",
       "curved",
-      "leader"
+      "leader",
+      "bare"
      ],
-     "type": "string"
+     "type": "string",
+     "description": "bare: caps text only, no pill, no leader. Text renders navy #14213D. The label must declare ground, the fill it sits over, and G8 checks navy on that ground at 7:1."
     },
     "target": {
      "type": [
@@ -130,6 +132,10 @@
       "string",
       "null"
      ]
+    },
+    "dx": {
+     "type": "number",
+     "description": "Added in hme.map 1.1. Leader-mode horizontal offset in px from the point to the pill centre (1920x1080). Default 0. The leader then runs from the point to the pill."
     },
     "dy": {
      "type": "number",
@@ -170,6 +176,10 @@
     },
     "color": {
      "type": "string"
+    },
+    "dashed": {
+     "type": "boolean",
+     "description": "Dashed route: casing and segments share one dash pattern. Harris arc fan."
     }
    },
    "required": [
@@ -201,6 +211,14 @@
    },
    "type": "array"
   },
+  "focusMode": {
+   "description": "Added in hme.map 1.1, optional. 'single' (default) floods only the current focus subject. 'cumulative' keeps each earlier subject's flood after the focus moves on, dimmed like other non-subject land, so there is still exactly one focus.",
+   "enum": [
+    "single",
+    "cumulative"
+   ],
+   "type": "string"
+  },
   "focus": {
    "items": {
     "$ref": "#/$defs/focusEvent"
@@ -211,6 +229,10 @@
    "additionalProperties": false,
    "properties": {
     "countries": {
+     "type": "string"
+    },
+    "key": {
+     "description": "GeoJSON property name the include values match against. Default ISO_A3 (countries). Use iso_3166_2 for the US states file.",
      "type": "string"
     },
     "include": {

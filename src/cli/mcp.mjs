@@ -1,8 +1,8 @@
 // hme mcp: the MCP server over stdio.
 //
 // One tool per implemented hme command (compare, trace, diagnose,
-// control, extract, fonts, player-pass, context), each with a JSON
-// schema for its arguments, plus four readable resources
+// control, extract, fonts, player-pass, context, frame-style), each
+// with a JSON schema for its arguments, plus four readable resources
 // (hme://predicate, hme://ceiling, hme://rules/map,
 // hme://schema/scene). The placeholder commands (render, validate,
 // gates) have no tool: the design doc gives them no implemented
@@ -198,6 +198,20 @@ const TOOL_SCHEMAS = {
     required: [],
     additionalProperties: false,
   },
+  "frame-style": {
+    type: "object",
+    properties: {
+      video: { type: "string", description: "Path to the reference video." },
+      start_s: { type: "number", description: "Start time in seconds. Required." },
+      end_s: { type: "number", description: "End time in seconds. Required, and after start_s." },
+      out: { type: "string", description: "Write the plain-language style prompt here. Required." },
+      report: { type: "string", description: "Write the JSON insight report here. Without it, a temp file is used." },
+      csv: { type: "string", description: "Write one row per frame (frame, time, mean_abs_diff, changed). Without it, no CSV is written." },
+      fps: { type: "number", description: "Frames per second to extract at. Default: the video native fps from ffprobe." },
+    },
+    required: ["video", "start_s", "end_s", "out"],
+    additionalProperties: false,
+  },
 };
 
 export const TOOL_NAMES = Object.keys(TOOL_SCHEMAS);
@@ -278,6 +292,9 @@ export function buildSummary(tool, report) {
     }
     if (tool === "player-pass" && isRecord(n.shots)) {
       parts.push(`${Object.keys(n.shots).length} shots.`);
+    }
+    if (tool === "frame-style" && typeof n.frames === "number") {
+      parts.push(`Measured ${n.frames} frames, changed fraction ${n.changed_fraction}, mean change ${n.mean_change_per_second} levels per second. Prompt: ${n.prompt_path}.`);
     }
     return parts.join(" ");
   }
@@ -436,6 +453,16 @@ export async function callTool(name, args) {
         if (args.scene) argv.push("--scene", args.scene);
         argv.push("--out", reportPath);
         out = await runCli("context", argv, { kind: "file", reportPath });
+        break;
+      }
+      case "frame-style": {
+        const promptPath = resolve(args.out);
+        const reportPath = args.report ? resolve(args.report) : join(workdir, "report.json");
+        const argv = [args.video, "--start-s", String(args.start_s), "--end-s", String(args.end_s), "--out", promptPath, "--report", reportPath];
+        if (args.csv) argv.push("--csv", resolve(args.csv));
+        if (args.fps !== undefined) argv.push("--fps", String(args.fps));
+        out = await runCli("frame-style", argv, { kind: "file", reportPath });
+        out.extra.prompt_path = promptPath;
         break;
       }
       default:

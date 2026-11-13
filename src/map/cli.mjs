@@ -61,8 +61,9 @@ function main(argv) {
     return 1;
   }
   const geo = JSON.parse(readFileSync(geoPath, "utf8"));
-  const features = geo.features.filter((f) => props.geometry.include.includes(f.properties.ISO_A3));
-  const missing = props.geometry.include.filter((iso) => !features.some((f) => f.properties.ISO_A3 === iso));
+  const geoKey = (props.geometry && props.geometry.key) || "ISO_A3";
+  const features = geo.features.filter((f) => props.geometry.include.includes(f.properties[geoKey]));
+  const missing = props.geometry.include.filter((iso) => !features.some((f) => f.properties[geoKey] === iso));
   if (missing.length) {
     console.error(`NE_MISSING countries not in file: ${missing.join(",")}`);
     return 1;

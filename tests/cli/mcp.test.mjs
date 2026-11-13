@@ -38,11 +38,11 @@ function runServer(requests) {
 
 const INIT = { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "test", version: "0" } } };
 
-test("mcp lists exactly the 8 implemented tools, no placeholders", () => {
-  assert.deepEqual([...TOOL_NAMES].sort(), ["compare", "context", "control", "diagnose", "extract", "fonts", "player-pass", "trace"]);
+test("mcp lists exactly the 9 implemented tools, no placeholders", () => {
+  assert.deepEqual([...TOOL_NAMES].sort(), ["compare", "context", "control", "diagnose", "extract", "fonts", "frame-style", "player-pass", "trace"]);
   for (const name of ["render", "validate", "gates"]) assert.ok(!TOOL_NAMES.includes(name), `${name} is a placeholder and must have no tool`);
   const tools = listTools();
-  assert.equal(tools.length, 8);
+  assert.equal(tools.length, 9);
   for (const t of tools) {
     assert.equal(typeof t.name, "string");
     assert.ok(t.description.length > 0, `${t.name} needs a description`);

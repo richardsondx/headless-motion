@@ -181,9 +181,11 @@ export async function renderScene({ scenePath, profileName, outDir, frames = nul
   if (errors.length) fail("validate", "SCENE_INVALID", EXIT.scene, errors.map((e) => `${e.code} ${e.path}`).join("; "));
   // The profile output must share the scene aspect: a landscape scene
   // under the vertical profile (or the reverse) fails loudly instead of
-  // rendering a cropped frame. Scaled profiles such as previs keep the
-  // scene aspect, so they still pass.
-  if (scene.meta.width * profile.output.height !== scene.meta.height * profile.output.width) {
+  // rendering a cropped frame. The match allows 1% slack, because the
+  // previs output (854x480) is a rounded 16:9, not an exact one.
+  const sceneAspect = scene.meta.width / scene.meta.height;
+  const profileAspect = profile.output.width / profile.output.height;
+  if (Math.abs(sceneAspect - profileAspect) / sceneAspect > 0.01) {
     fail("validate", "SCENE_INVALID", EXIT.scene, `scene size ${scene.meta.width}x${scene.meta.height} does not match profile ${profileName} output ${profile.output.width}x${profile.output.height} (aspect mismatch)`);
   }
   const fps = sceneFps(scene);

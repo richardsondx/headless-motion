@@ -80,7 +80,8 @@ function cameraAt(props, frame, fps, evFrames, routeStates) {
 
 export function computeMapState(props, frame, fps, tokens, geoFeatures, events) {
   const evFrames = eventFrames(events);
-  const byIso = new Map(geoFeatures.map((f) => [f.properties.ISO_A3, f]));
+  const key = (props.geometry && props.geometry.key) || "ISO_A3";
+  const byIso = new Map(geoFeatures.map((f) => [f.properties[key], f]));
   const routeStates = {};
   for (const r of props.routes || []) {
     const startF = Math.ceil(r.start * fps);
@@ -90,6 +91,7 @@ export function computeMapState(props, frame, fps, tokens, geoFeatures, events) 
     routeStates[r.id] = {
       id: r.id,
       lineColor: r.color || null,
+      dashed: r.dashed === true,
       progress: p,
       active: frame >= startF && frame <= startF + drawF,
       head: pointAlongRoute(r.coords, p),
@@ -98,13 +100,24 @@ export function computeMapState(props, frame, fps, tokens, geoFeatures, events) 
   }
   const camera = cameraAt(props, frame, fps, evFrames, routeStates);
   const focusList = props.focus || [];
+  // focusMode "cumulative" (map props, added in hme.map 1.1, default off):
+  // a subject keeps its flood after the focus moves on, dimmed like any
+  // other non-subject land, so there is still exactly one focus. Land that
+  // was already dimmed stays dimmed across the handoff (no re-ramp), and
+  // the new subject ramps from its previous fill into its flood.
+  const cumulative = props.focusMode === "cumulative";
+  const kept = new Map();
   let focus = null;
+  let prevSubject = null;
   for (let i = 0; i < focusList.length; i++) {
     const f = focusList[i];
     const startF = evFrames[f.event];
     if (startF === undefined || frame < startF) continue;
     const nextF = i + 1 < focusList.length ? evFrames[focusList[i + 1].event] : Infinity;
-    if (frame < nextF) focus = { ...f, startF, point: f.point || null };
+    if (frame < nextF) {
+      focus = { ...f, startF, point: f.point || null };
+      prevSubject = i > 0 ? focusList[i - 1].subject : null;
+    } else if (cumulative && f.flood) kept.set(f.subject, f.flood);
   }
   const ramp = tokens.focus.rampFrames ?? 6;
   const dimT = focus ? Math.min(1, Math.max(0, (frame - focus.startF) / ramp)) : 0;
@@ -114,18 +127,25 @@ export function computeMapState(props, frame, fps, tokens, geoFeatures, events) 
     const feature = byIso.get(iso);
     const base = register === "dark" ? (tokens.dark.landBase || tokens.dark.landMeasuredThumb || tokens.dark.land) : tokens.light.tanLand;
     const isSubject = focus && focus.subject === iso;
-    const fill = isSubject && focus.flood ? focus.flood : base;
+    const fill = isSubject && focus.flood ? focus.flood : (kept.get(iso) || base);
     const dimmed = Boolean(focus) && !isSubject;
+    const dimOf = (c) => dimColor(c, 1 - tokens.focus.desaturate, 1 - tokens.focus.valueDrop);
+    // Cumulative handoff: only the previous subject ramps down; the rest
+    // of the land was already dimmed under the previous focus.
+    const dimK = cumulative && prevSubject !== null && iso !== prevSubject ? 1 : dimEase;
+    let displayFill = dimmed ? mixHex(fill, dimOf(fill), dimK) : fill;
+    if (cumulative && isSubject && focus.flood) {
+      const from = prevSubject !== null ? dimOf(kept.get(iso) || base) : (kept.get(iso) || base);
+      displayFill = mixHex(from, fill, dimEase);
+    }
     return {
       iso,
       name: feature ? feature.properties.NAME : iso,
       centroid: feature ? centroidOf(feature) : [0, 0],
       fill,
       dimmed,
-      displayFill: dimmed
-        ? mixHex(fill, dimColor(fill, 1 - tokens.focus.desaturate, 1 - tokens.focus.valueDrop), dimEase)
-        : fill,
-      dimFactor: dimmed ? dimEase : 0,
+      displayFill,
+      dimFactor: dimmed ? dimK : 0,
     };
   });
   const labels = (props.labels || []).map((l) => {
@@ -134,7 +154,7 @@ export function computeMapState(props, frame, fps, tokens, geoFeatures, events) 
       const c = countries.find((c2) => c2.iso === l.target);
       target = c ? c.centroid : [0, 0];
     } else target = l.target;
-    return { id: l.id, text: l.text, mode: l.mode || "pill", dy: l.dy, ground: l.ground === undefined ? "#14213D" : l.ground, visible: frame >= l.at, screen: projectPoint(target[0], target[1], camera) };
+    return { id: l.id, text: l.text, mode: l.mode || "pill", dy: l.dy, dx: l.dx, ground: l.ground === undefined ? "#14213D" : l.ground, visible: frame >= l.at, screen: projectPoint(target[0], target[1], camera) };
   });
   const badges = (props.badges || []).map((b) => ({
     id: b.id, label: b.label, mode: b.mode || "disc",

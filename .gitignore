@@ -25,3 +25,6 @@ hf-smoke/
 __pycache__/
 *.pyc
 *.pyo
+
+# Scratch render work (large PNGs, never commit)
+verify-seg4/evidence/work/

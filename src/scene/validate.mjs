@@ -61,6 +61,20 @@ export function validateScene(scene) {
   if (errors.length) return { errors, warnings };
 
   const { nodes, timeline, events, fonts, palette, meta } = scene;
+  // Scene camera: zoom must be above 0 (the schema also enforces
+  // this) and the center must sit inside the canvas.
+  if (scene.camera !== undefined) {
+    const cam = scene.camera;
+    if (!(cam.zoom > 0)) add("PROP_TYPE", ["camera", "zoom"], `zoom must be greater than 0, got ${cam.zoom}`);
+    if (Array.isArray(cam.center)) {
+      if (cam.center[0] < 0 || cam.center[0] > meta.width) {
+        add("PROP_TYPE", ["camera", "center", 0], `center x ${cam.center[0]} is outside the canvas width ${meta.width}`);
+      }
+      if (cam.center[1] < 0 || cam.center[1] > meta.height) {
+        add("PROP_TYPE", ["camera", "center", 1], `center y ${cam.center[1]} is outside the canvas height ${meta.height}`);
+      }
+    }
+  }
   // palette.ground may be a gradient: its stop colours must resolve like any flat colour.
   const ground = palette.ground;
   if (ground && typeof ground === "object" && Array.isArray(ground.stops)) {
@@ -72,6 +86,7 @@ export function validateScene(scene) {
   }
   const byId = new Map();
   nodes.forEach((n, i) => {
+    if (n.id === "camera") add("PROP_TYPE", ["nodes", i, "id"], `node id "camera" is reserved for the scene camera`);
     if (byId.has(n.id)) add("DUP_ID", ["nodes", i, "id"], `node id "${n.id}" already used at /nodes/${byId.get(n.id).index}`);
     else byId.set(n.id, { node: n, index: i });
   });
@@ -120,11 +135,23 @@ export function validateScene(scene) {
     if (n.type === "map" || n.type === "chart") checkCompanion(n, i, add, warnings);
   });
   const seenTracks = new Set();
+  const cameraCenterProps = new Set();
   timeline.forEach((track, i) => {
     const id = `${track.node}\u0000${track.prop}`;
     if (seenTracks.has(id)) add("PROP_TYPE", ["timeline", i], `second track for ${track.node} ${track.prop}`);
     seenTracks.add(id);
-    checkTrack(track, i, byId, baseStates, palette, meta.duration, add);
+    if (track.node === "camera" && track.prop.startsWith("center")) {
+      // "center" sets both axes, so it must not share the track list
+      // with "center.x" or "center.y". The two axis tracks may pair.
+      if (track.prop === "center" && (cameraCenterProps.has("center.x") || cameraCenterProps.has("center.y"))) {
+        add("PROP_TYPE", ["timeline", i, "prop"], `camera "center" track conflicts with a "center.x" or "center.y" track`);
+      }
+      if ((track.prop === "center.x" || track.prop === "center.y") && cameraCenterProps.has("center")) {
+        add("PROP_TYPE", ["timeline", i, "prop"], `camera "${track.prop}" track conflicts with a "center" track`);
+      }
+      cameraCenterProps.add(track.prop);
+    }
+    checkTrack(track, i, byId, baseStates, palette, meta, add);
   });
   return { errors, warnings };
 }
@@ -174,8 +201,41 @@ function checkCompanion(n, i, add, warnings) {
   for (const e of checkSchema(schema, n.props, { path: ["nodes", i, "props"] })) add(e.code, e.path, e.message);
 }
 
-function checkTrack(track, i, byId, baseStates, palette, duration, add) {
+const CAMERA_PROPS = new Set(["zoom", "center", "center.x", "center.y"]);
+
+/** Camera track value range: zoom above 0, center inside the canvas. */
+function checkCameraValue(track, i, j, meta, add) {
+  const at = (...rest) => ["timeline", i, "keys", j, ...rest];
+  const v = track.keys[j].v;
+  if (track.prop === "zoom") {
+    if (typeof v !== "number" || !(v > 0)) add("PROP_TYPE", at("v"), `camera zoom must be greater than 0, got ${JSON.stringify(v)}`);
+  } else if (track.prop === "center") {
+    if (!Array.isArray(v) || v.length !== 2 || v.some((x) => typeof x !== "number")) {
+      add("PROP_TYPE", at("v"), `camera center must be [x, y] numbers, got ${JSON.stringify(v)}`);
+    } else {
+      if (v[0] < 0 || v[0] > meta.width) add("PROP_TYPE", at("v"), `center x ${v[0]} is outside the canvas width ${meta.width}`);
+      if (v[1] < 0 || v[1] > meta.height) add("PROP_TYPE", at("v"), `center y ${v[1]} is outside the canvas height ${meta.height}`);
+    }
+  } else if (track.prop === "center.x") {
+    if (typeof v !== "number" || v < 0 || v > meta.width) add("PROP_TYPE", at("v"), `center x ${v} is outside the canvas width ${meta.width}`);
+  } else if (track.prop === "center.y") {
+    if (typeof v !== "number" || v < 0 || v > meta.height) add("PROP_TYPE", at("v"), `center y ${v} is outside the canvas height ${meta.height}`);
+  }
+}
+
+function checkTrack(track, i, byId, baseStates, palette, meta, add) {
+  const duration = meta.duration;
   const at = (...rest) => ["timeline", i, ...rest];
+  if (track.node === "camera") {
+    if (!CAMERA_PROPS.has(track.prop)) return add("UNKNOWN_FIELD", at("prop"), `camera has no animatable prop "${track.prop}"`);
+    track.keys.forEach((k, j) => {
+      if (j === 0 && k.ease !== undefined) add("PROP_TYPE", at("keys", j, "ease"), "first key must not carry ease");
+      if (j > 0 && k.f <= track.keys[j - 1].f) add("KEY_ORDER", at("keys", j, "f"), `frame ${k.f} does not exceed previous key ${track.keys[j - 1].f}`);
+      if (k.f > duration) add("KEY_RANGE", at("keys", j, "f"), `frame ${k.f} beyond duration ${duration}`);
+      checkCameraValue(track, i, j, meta, add);
+    });
+    return;
+  }
   const entry = byId.get(track.node);
   if (!entry) return add("PROP_TYPE", at("node"), `no node with id "${track.node}"`);
   const base = baseStates.get(track.node);

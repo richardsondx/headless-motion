@@ -35,9 +35,11 @@ export function checkG9(allStates, props, fps, events) {
     if (landF - startF < 1) failures.push({ code: "CAMERA_NO_ROOM", frame: landF, detail: `no room for travel before ${m.event}` });
     void startF;
   }
-  // Hold rule, from the skill: after any label lands, the camera holds
-  // still for at least 1.2 s. Any movement inside that window is HOLD_SHORT.
+  // Hold rule, from the skill: after any pill or leader label lands, the
+  // camera holds still for at least 1.2 s. Bare labels are pinned to
+  // geography and track the camera each frame, so they do not need the hold.
   for (const label of props.labels || []) {
+    if (label.mode === "bare") continue;
     for (let f = label.at; f <= Math.min(label.at + hold, allStates.length - 1); f++) {
       const s = byFrame.get(f);
       if (s && s.camera.moving) {

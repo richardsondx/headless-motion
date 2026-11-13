@@ -58,6 +58,24 @@ window.__hme = (() => {
     return parts.join(" ");
   }
 
+  // CSS filter for an image node's filter, from sampled state.
+  // "" when the node has no filter and no track sets one, so
+  // unfiltered images keep today's output. Mirrors imageFilterCss
+  // in compile.mjs (grayscale first, then blur), so the per-frame
+  // value equals the compiled static value when nothing moves.
+  // The <img> is created once at compile time and only its src
+  // attribute is swapped per frame, so setting style.filter here
+  // survives every seek.
+  function imageFilterCss(s, node) {
+    const p = node.props;
+    const gray = s["props.filter.grayscale"] ?? (p.filter && p.filter.grayscale);
+    const blur = s["props.filter.blur"] ?? (p.filter && p.filter.blur);
+    const parts = [];
+    if (gray !== undefined) parts.push("grayscale(" + gray + ")");
+    if (blur !== undefined) parts.push("blur(" + blur + "px)");
+    return parts.join(" ");
+  }
+
   // Per-frame glow/soft for an SVG shape node: update the compiled
   // filter's primitives (feGaussianBlur stdDeviation = soft radius,
   // feDropShadow stdDeviation = glow radius, flood-opacity = intensity).
@@ -109,6 +127,28 @@ window.__hme = (() => {
   }
 
   function apply(state) {
+    // Scene camera: scale the whole stage about the camera center.
+    // screen = zoom * (p - center) + center, written as translate +
+    // scale + translate, mirroring the map camera's affine transform
+    // on its layer group. Untouched when the scene has no camera, so
+    // no-camera renders are unchanged. Text and stroke widths scale
+    // with the stage; that is the intended camera behaviour.
+    const cam = state.camera;
+    if (cam) {
+      const z = cam.zoom ?? 1;
+      const cx = cam.center ? cam.center[0] : scene.meta.width / 2;
+      const cy = cam.center ? cam.center[1] : scene.meta.height / 2;
+      if (z !== 1 || cx !== scene.meta.width / 2 || cy !== scene.meta.height / 2) {
+        // Origin 0 0: the default 50% 50% origin would shift the
+        // explicit translates, so the fixed point would move.
+        stage.style.transformOrigin = "0px 0px";
+        stage.style.transform =
+          "translate(" + fmtNum(cx) + "px, " + fmtNum(cy) + "px) scale(" + fmtNum(z) + ") translate(" + fmtNum(-cx) + "px, " + fmtNum(-cy) + "px)";
+      } else {
+        stage.style.transformOrigin = "";
+        stage.style.transform = "";
+      }
+    }
     for (const node of scene.nodes) {
       const el = els[node.id];
       if (!el) continue;
@@ -158,6 +198,14 @@ window.__hme = (() => {
       } else if (node.type === "shape") {
         const kind = node.props.kind;
         if (kind === "rect" || kind === "ellipse") {
+          // Per-frame box size: the sampled box.w and box.h land on
+          // the div, so a box.w track grows the rect on screen. The
+          // sampled value falls back to the static box, so a rect
+          // with no box track keeps exactly its compiled size.
+          // Points shapes never reach this branch: their size lives
+          // in the SVG path and viewBox, not the div.
+          el.style.width = (s["box.w"] ?? node.box.w ?? 0) + "px";
+          el.style.height = (s["box.h"] ?? node.box.h ?? 0) + "px";
           // A gradient fill is a background image in the compiled HTML.
           // The sampled fill is an object for gradient nodes, so
           // s["props.fill"] is undefined there; the node-fill guard below
@@ -203,7 +251,14 @@ window.__hme = (() => {
         }
       } else if (node.type === "image") {
         const img = el.querySelector("img");
-        if (img && s["props.src"] !== undefined && !String(img.getAttribute("src") || "").startsWith("data:")) img.setAttribute("src", s["props.src"]);
+        if (img) {
+          if (s["props.src"] !== undefined && !String(img.getAttribute("src") || "").startsWith("data:")) img.setAttribute("src", s["props.src"]);
+          // A track can add a filter to a node that has none in its
+          // props, so the sampled keys count too, not just p.filter.
+          if (node.props.filter || s["props.filter.grayscale"] !== undefined || s["props.filter.blur"] !== undefined) {
+            img.style.filter = imageFilterCss(s, node);
+          }
+        }
       }
       // map and chart nodes are owned by their module runtimes, which read
       // the same sampled state and register waiters below.

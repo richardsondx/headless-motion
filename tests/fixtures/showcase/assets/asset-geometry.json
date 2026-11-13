@@ -1,0 +1,53 @@
+{
+  "canvas": {
+    "w": 1080,
+    "h": 1920
+  },
+  "panel": {
+    "x": 84,
+    "w": 912,
+    "h": 560,
+    "top_y": 210,
+    "bottom_y": 950
+  },
+  "top": {
+    "line1_width": 703,
+    "line2_width": 730,
+    "sub1_width": 373,
+    "headline_size": 46
+  },
+  "bottom": {
+    "line1_width": 642,
+    "line2_width": 582,
+    "sub1_width": 334,
+    "headline_size": 46
+  },
+  "highlight_top_1": {
+    "x": 128,
+    "y": 296,
+    "w": 711,
+    "h": 58,
+    "end_x": 839
+  },
+  "highlight_top_2": {
+    "x": 128,
+    "y": 422,
+    "w": 381,
+    "h": 30,
+    "end_x": 509
+  },
+  "highlight_bottom_1": {
+    "x": 128,
+    "y": 1036,
+    "w": 650,
+    "h": 58,
+    "end_x": 778
+  },
+  "photo": {
+    "x": 684,
+    "top_y": 462,
+    "bottom_y": 1202,
+    "w": 264,
+    "h": 300
+  }
+}

@@ -74,6 +74,35 @@ test("negative fixtures each fail with the right code", () => {
   assert.ok(checkG8(sampled, TOKENS).failures.some((f) => f.code === "G8_LINE_NO_CASING"));
 });
 
+test("bare label: navy on water passes G8, on blue flood fails, no ground fails", () => {
+  const base = { frame: 0, labels: [], routes: [], countries: [], baseFill: "#C6AD7A" };
+  const onWater = { ...base, labels: [{ id: "l1", mode: "bare", ground: "#C7D8E2", visible: true }] };
+  assert.deepEqual(checkG8([onWater], TOKENS).failures, []);
+  const onFlood = { ...base, labels: [{ id: "l1", mode: "bare", ground: "#4E7FA6", visible: true }] };
+  assert.ok(checkG8([onFlood], TOKENS).failures.some((f) => f.code === "G8_TEXT"));
+  const naked = { ...base, labels: [{ id: "l1", mode: "bare", ground: null, visible: true }] };
+  assert.ok(checkG8([naked], TOKENS).failures.some((f) => f.code === "NAKED_LABEL"));
+});
+
+test("dashed route: state carries the dashed flag", () => {
+  const { scene, props } = sampleStates();
+  const dashed = { ...props, routes: [{ id: "r1", coords: [[-77, 39], [-80, 36]], start: 0, draw: 1, color: "#14213D", dashed: true }] };
+  const s = computeMapState(dashed, 12, scene.meta.fps, TOKENS, [], scene.events);
+  assert.equal(s.routes[0].dashed, true);
+  const solid = { ...props, routes: [{ id: "r1", coords: [[-77, 39], [-80, 36]], start: 0, draw: 1 }] };
+  assert.equal(computeMapState(solid, 12, scene.meta.fps, TOKENS, [], scene.events).routes[0].dashed, false);
+});
+
+test("G9 hold rule ignores bare labels, still holds pill labels", () => {
+  const { scene, props, states } = sampleStates();
+  const moving = JSON.parse(JSON.stringify(states));
+  moving[72].camera.moving = true;
+  const bareProps = { ...props, labels: [{ id: "t", at: 72, mode: "bare" }] };
+  assert.ok(!checkG9(moving, bareProps, scene.meta.fps, scene.events).failures.some((f) => f.code === "HOLD_SHORT"));
+  const pillProps = { ...props, labels: [{ id: "t", at: 72, mode: "pill" }] };
+  assert.ok(checkG9(moving, pillProps, scene.meta.fps, scene.events).failures.some((f) => f.code === "HOLD_SHORT"));
+});
+
 // Negative fixtures in tests/fixtures/map-bad/ each exit 1 with their code.
 // CAMERA_DRIFT and FOCUS_OVERLAP are not reachable from scene props (the
 // state builder only moves the camera inside travel windows and only ever

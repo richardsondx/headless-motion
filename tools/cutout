@@ -1,0 +1,17 @@
+#!/bin/sh
+# Cut a photo out to a transparent PNG, in one command.
+# Usage: tools/cutout INPUT OUTPUT [--person] [--grayscale]
+# Runs tools/cutout.py in the cutout venv. No manual venv step.
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+VENV="$HOME/workspace/tmp-work/venv-cutout"
+PYTHON="$VENV/bin/python"
+
+if [ ! -x "$PYTHON" ]; then
+  echo "error: cutout venv python is missing at $PYTHON" >&2
+  echo "rebuild it with: python3 -m venv $VENV && $VENV/bin/pip install rembg onnxruntime" >&2
+  exit 1
+fi
+
+OMP_NUM_THREADS=2 exec "$PYTHON" "$ROOT/tools/cutout.py" "$@"

@@ -165,3 +165,21 @@ One line per timed step. Columns, separated by ` | `:
 2026-11-09 | stage2-followup-trace-rig-man | T3b | hme validate scene.json | 3 | 22.1s | 7.4 | exit 0, 0 errors, 0 warnings; 7716 nodes, 2028 tracks, 73 frames
 2026-11-09 | stage2-followup-trace-rig-man | T3b | independent verification (verify.py) | 3 | 39.1s | 13.0 | exit 0, 0 failures; boxes/fills/d/pivots/rotations/timeline all recompute
 2026-11-09 | stage2-followup-trace-rig-man | T3b | diagnostic render frames 0/48/72, profile final | 3 | 172.5s | 57.5 | exit 0, deterministic; video 0af0fe23; frames c8f9dab3/32cd2f81/e5c6565c
+2026-11-09 | stage2-followup-trace-rig-man | T4-retry | Linux diagnostic render frame 0, profile final | 1 | 11.7s | 11.7 | exit 0; video 2e58bcb1; frame c8f9dab3; byte-identical to T3b frame
+2026-11-09 | stage2-followup-trace-rig-man | T4-retry | Linux diagnostic render frames 48,72, profile final | 2 | 14.4s | 7.2 | exit 0; video 23510cce; frames 32cd2f81/e5c6565c; byte-identical to T3b frames
+2026-11-09 | stage2-followup-trace-rig-man | T4-retry | SSIM + checks on Linux diagnostics | 3 | 15.3s | 5.1 | SSIM 0.9777/0.9508/0.9537 mean 0.9607; skimage cross-check mean 0.9586; face IoU 0.9544; temple 0 px
+2026-11-09 | stage2-followup-trace-rig-man | T4-retry | Mac proof render, 73 frames, profile final | 73 | 26.6s | 0.36 | exit 0; video dd6cf4d1; 1920x1080 scene, frames 2880x1620; npm ci + render in one SSH session
+2026-11-09 | stage2-followup-trace-rig-man | T4-retry | Mac SSIM + checks on proof render | 3 | 16.6s | 5.5 | SSIM 0.9770/0.9465/0.9496 mean 0.9577; skimage cross-check mean 0.9554; face IoU 0.9544; temple 0 px
+
+2026-11-09 | stage2-followup-trace-rig-man | T5 | regression render v5, profile previs | 192 | 118s | 0.61 | exit 0; 192/192 frames match baseline, video 0695257a identical; 0 mismatched
+2026-11-09 | stage2-followup-trace-rig-man | T5 | regression render v6, profile previs | 192 | 111s | 0.58 | exit 0; 192/192 frames match baseline, video fb1041bf identical; 0 mismatched
+2026-11-09 | stage2-followup-trace-rig-man | T5 | regression render v7, profile previs | 192 | 110s | 0.57 | exit 0; 192/192 frames match baseline, video 8909b18e identical; 0 mismatched
+2026-11-09 | stage2-followup-trace-rig-man | T5 | npm test | 116 | 81s | 0.70 | 116 pass, 0 fail, exit 0; known non-rig failures did not appear
+2026-11-09 | stage2-followup-trace-rig-man | T5 | kit check.sh doctor + drive | 0 | 2s | - | ALL CHECKS PASSED both, exit 0; define 8 parts 6 joints 9 poses, expand 10 tracks 42 keys
+2026-11-09 | stage2-followup-trace-rig-man | T5 | drive reproduction render, scene.json frames 0/48/72, profile final | 3 | 35s | 11.7 | exit 0 both; frames byte-identical to T4 Linux diagnostics c8f9dab3/32cd2f81/e5c6565c
+2026-11-09 | stage2-followup-trace-rig-man | verifier | SSIM recompute Mac+Linux, two methods | 6 | 21.6s | 3.6 | Mac mean 0.9577/0.9554, Linux 0.9607/0.9624; both clear bars
+2026-11-09 | stage2-followup-trace-rig-man | verifier | regression frame compare v5/v6/v7 | 576 | 36.2s | 0.06 | 0 mismatches, videos match
+2026-11-09 | stage2-followup-trace-rig-man | verifier | npm test | 116 | 104.1s | 0.90 | 116 pass, 0 fail, exit 0
+2026-11-09 | stage2-followup-trace-rig-man | verifier | kit doctor + drive | 0 | 3s | - | ALL CHECKS PASSED both, exit 0
+2026-11-09 | stage2-followup-trace-rig-man | verifier | scene validate + pixel checks | 6 | 45s | 7.5 | validator PASS 0 errors; face IoU 0.9544; 27 exact; temple 0 px
+2026-11-09 | stage2-followup-trace-rig-man | judge | verdict | 0 | 302s | - | overall PASS WITH GAPS; read verify-report.md, units.json, compare-report.md, regression.md, kit-proof.md, ledger, trail; spot-checked hashes (pred-v1, scene, rig, part-map, traces, Mac video/frames, regression videos) and counts (grep 656/3505/3552; scene 7716 nodes; rig 676/676); wrote final-report.md and verdict.md

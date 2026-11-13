@@ -244,29 +244,51 @@ export function makeRow(geom, meta) {
 
 // Geometry of one node from its sampled state. The renderer puts the
 // element at box plus transform offset, and scales and rotates about
-// the element centre (the CSS default transform origin). The bbox is
-// the axis-aligned box of the scaled, rotated rect. Pure function.
+// the anchor when one is set, else the element centre (the CSS
+// default transform origin). scaleX and scaleY fall back to the
+// uniform scale, matching the evaluator and the runtime. The bbox is
+// the axis-aligned box of the four mapped corners, where each corner
+// p maps to origin + R x S x (p - origin): scale first, then rotate,
+// both about the same origin. Pure function.
 export function computedGeometry(state, node) {
   const w0 = state["box.w"];
   const h0 = state["box.h"];
   const tx = state["transform.x"] || 0;
   const ty = state["transform.y"] || 0;
-  const scale = state["transform.scale"] ?? 1;
+  const sx = state["transform.scaleX"] ?? state["transform.scale"] ?? 1;
+  const sy = state["transform.scaleY"] ?? state["transform.scale"] ?? 1;
   const rot = state["transform.rotation"] || 0;
-  const cx = (state["box.x"] || 0) + tx + w0 / 2;
-  const cy = (state["box.y"] || 0) + ty + h0 / 2;
-  const ws = w0 * scale;
-  const hs = h0 * scale;
+  const x0 = (state["box.x"] || 0) + tx;
+  const y0 = (state["box.y"] || 0) + ty;
+  // Anchor in px relative to the box top-left; each axis falls back
+  // to the box centre, matching the runtime. With no anchor set the
+  // origin is the box centre, as before.
+  const ox = x0 + (state["transform.anchorX"] ?? w0 / 2);
+  const oy = y0 + (state["transform.anchorY"] ?? h0 / 2);
   const rad = (rot * Math.PI) / 180;
-  const wbb = Math.abs(ws * Math.cos(rad)) + Math.abs(hs * Math.sin(rad));
-  const hbb = Math.abs(ws * Math.sin(rad)) + Math.abs(hs * Math.cos(rad));
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const map = (px, py) => {
+    const dx = (px - ox) * sx;
+    const dy = (py - oy) * sy;
+    return [ox + dx * cos - dy * sin, oy + dx * sin + dy * cos];
+  };
+  const corners = [
+    map(x0, y0),
+    map(x0 + w0, y0),
+    map(x0 + w0, y0 + h0),
+    map(x0, y0 + h0),
+  ];
+  const xs = corners.map((p) => p[0]);
+  const ys = corners.map((p) => p[1]);
+  const centre = map(x0 + w0 / 2, y0 + h0 / 2);
   return {
-    centre: [r3(cx), r3(cy)],
-    bbox: [r3(cx - wbb / 2), r3(cy - hbb / 2), r3(cx + wbb / 2), r3(cy + hbb / 2)],
+    centre: [r3(centre[0]), r3(centre[1])],
+    bbox: [r3(Math.min(...xs)), r3(Math.min(...ys)), r3(Math.max(...xs)), r3(Math.max(...ys))],
     pixels: null,
     z: node.z,
     visible: state.visible,
-    boxArea: ws * hs,
+    boxArea: w0 * sx * h0 * sy,
   };
 }
 

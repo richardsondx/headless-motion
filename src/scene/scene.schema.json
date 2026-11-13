@@ -198,6 +198,9 @@
         "$ref": "#/$defs/node"
       }
     },
+    "camera": {
+      "$ref": "#/$defs/camera"
+    },
     "timeline": {
       "type": "array",
       "items": {
@@ -225,9 +228,64 @@
           }
         }
       }
+    },
+    "points": {
+      "type": "array",
+      "description": "Additive, Nov 13 2026 (headless-motion-opt): canonical spec-v3 points the scene was placed from. Optional; the renderer ignores them. Each point carries its piece span and its neighbour relation.",
+      "items": {
+        "$ref": "#/$defs/canonicalPoint"
+      }
+    },
+    "figure_span": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Additive, Nov 13 2026 (headless-motion-opt): whole-figure extent as fractions of frame width and height. Optional; the renderer ignores it.",
+      "required": [
+        "x_range",
+        "y_range"
+      ],
+      "properties": {
+        "x_range": {
+          "$ref": "#/$defs/fracRange"
+        },
+        "y_range": {
+          "$ref": "#/$defs/fracRange"
+        }
+      }
+    },
+    "draw_order": {
+      "type": "array",
+      "description": "Additive, Nov 13 2026 (headless-motion-opt): the order the scene is described in: whole, subject and framing, parts top to bottom, pose, background, details. Optional; the renderer ignores it.",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "$defs": {
+    "camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "center",
+        "zoom"
+      ],
+      "properties": {
+        "center": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          },
+          "description": "scene px [x, y] that stays fixed on screen under the zoom"
+        },
+        "zoom": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "1 means no zoom; 2 doubles the stage about the center"
+        }
+      }
+    },
     "gradientStop": {
       "type": "object",
       "additionalProperties": false,
@@ -381,6 +439,215 @@
           "x-error-code": "KEY_RANGE"
         }
       ]
+    },
+    "fracRange": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "description": "Additive, Nov 13 2026 (headless-motion-opt): [min, max] as fractions of frame width (x) or height (y)."
+    },
+    "canonicalPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Additive, Nov 13 2026 (headless-motion-opt): one spec-v3 canonical point (13 fields) plus its piece span and neighbour relation. Ratios win on a conflict; the centroid is the largest-component centroid only.",
+      "required": [
+        "shape",
+        "view",
+        "frame",
+        "point",
+        "layer",
+        "scale",
+        "x_ratio",
+        "y_ratio",
+        "edges_ratio",
+        "edges_px",
+        "corners_px",
+        "corners_ratio",
+        "name"
+      ],
+      "properties": {
+        "shape": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "w",
+            "h",
+            "aspect"
+          ],
+          "properties": {
+            "w": {
+              "type": "number"
+            },
+            "h": {
+              "type": "number"
+            },
+            "aspect": {
+              "type": "string"
+            }
+          }
+        },
+        "view": {
+          "type": "string"
+        },
+        "frame": {
+          "type": "integer"
+        },
+        "point": {
+          "type": "string"
+        },
+        "layer": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "number"
+        },
+        "x_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "edges_ratio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "left",
+            "right",
+            "top",
+            "bottom"
+          ],
+          "properties": {
+            "left": {
+              "type": "number"
+            },
+            "right": {
+              "type": "number"
+            },
+            "top": {
+              "type": "number"
+            },
+            "bottom": {
+              "type": "number"
+            }
+          }
+        },
+        "edges_px": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "left",
+            "right",
+            "top",
+            "bottom"
+          ],
+          "properties": {
+            "left": {
+              "type": "number"
+            },
+            "right": {
+              "type": "number"
+            },
+            "top": {
+              "type": "number"
+            },
+            "bottom": {
+              "type": "number"
+            }
+          }
+        },
+        "corners_px": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "top_left",
+            "top_right",
+            "bottom_left",
+            "bottom_right"
+          ],
+          "properties": {
+            "top_left": {
+              "type": "number"
+            },
+            "top_right": {
+              "type": "number"
+            },
+            "bottom_left": {
+              "type": "number"
+            },
+            "bottom_right": {
+              "type": "number"
+            }
+          }
+        },
+        "corners_ratio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "top_left",
+            "top_right",
+            "bottom_left",
+            "bottom_right"
+          ],
+          "properties": {
+            "top_left": {
+              "type": "number"
+            },
+            "top_right": {
+              "type": "number"
+            },
+            "bottom_left": {
+              "type": "number"
+            },
+            "bottom_right": {
+              "type": "number"
+            }
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "span": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x_range",
+            "y_range"
+          ],
+          "properties": {
+            "x_range": {
+              "$ref": "#/$defs/fracRange"
+            },
+            "y_range": {
+              "$ref": "#/$defs/fracRange"
+            }
+          }
+        },
+        "relation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "neighbour_point"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "neighbour_point": {
+              "type": "string"
+            }
+          }
+        }
+      }
     },
     "ease": {
       "x-error-code": "UNKNOWN_EASE",
@@ -960,6 +1227,23 @@
             "contain",
             "none"
           ]
+        },
+        "filter": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grayscale": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "0 is full colour, 1 is fully grey"
+            },
+            "blur": {
+              "type": "number",
+              "minimum": 0,
+              "description": "px, 0 is sharp"
+            }
+          }
         }
       }
     },

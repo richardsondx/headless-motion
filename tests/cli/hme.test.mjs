@@ -13,8 +13,8 @@ const SCHEMA = JSON.parse(readFileSync(join(ROOT, "src", "cli", "insight-schema.
 const NAMES = COMMANDS.map((c) => c.name);
 const run = (args) => spawnSync(process.execPath, [HME, ...args], { encoding: "utf8" });
 
-test("hme --help lists all 24 commands", () => {
-  assert.deepEqual([...NAMES].sort(), ["blur-grain", "colour", "compare", "context", "contour", "control", "diagnose", "extract", "fix", "fonts", "gates", "layering", "ledger", "mcp", "path", "player-pass", "render", "rig", "timing", "trace", "type", "validate", "vignette", "zoom-velocity"]);
+test("hme --help lists all 28 commands", () => {
+  assert.deepEqual([...NAMES].sort(), ["blur-grain", "colour", "compare", "composition", "context", "contour", "control", "diagnose", "export", "extract", "fix", "fonts", "frame-style", "gates", "gradient", "layering", "ledger", "mcp", "path", "player-pass", "render", "rig", "timing", "trace", "type", "validate", "vignette", "zoom-velocity"]);
   const r = run(["--help"]);
   assert.equal(r.status, 0);
   for (const name of NAMES) assert.ok(r.stdout.includes(name), `--help is missing ${name}`);
@@ -43,13 +43,14 @@ for (const cmd of COMMANDS) {
 // implemented too, so it is excluded for the same reason. Timing is
 // implemented too, so it is excluded for the same reason. Ledger is
 // implemented too, so it is excluded for the same reason. Rig and fix
-// are implemented too, so they are excluded for the same reason. Type has a stub
+// are implemented too, so they are excluded for the same reason. Gradient is
+// implemented too (Unit G), so it is excluded for the same reason. Type has a stub
 // module (T1): its own test file covers the no-argument case, and a
 // real measurement run reports "not implemented yet" only after its
 // arguments validate. (mcp reads stdin, so a
 // bare `hme mcp` with no input waits for requests instead of
 // exiting; it is not a placeholder and must not be tested that way.)
-for (const cmd of COMMANDS.filter((c) => !["compare", "context", "diagnose", "extract", "control", "player-pass", "fonts", "trace", "mcp", "render", "validate", "gates", "blur-grain", "colour", "contour", "vignette", "layering", "type", "zoom-velocity", "timing", "ledger", "rig", "fix", "path"].includes(c.name))) {
+for (const cmd of COMMANDS.filter((c) => !["compare", "context", "diagnose", "extract", "control", "player-pass", "fonts", "trace", "mcp", "render", "validate", "gates", "blur-grain", "colour", "contour", "vignette", "layering", "type", "zoom-velocity", "timing", "ledger", "rig", "fix", "path", "gradient", "composition", "export", "frame-style"].includes(c.name))) {
   test(`${cmd.name} without --help says not implemented yet and exits 2`, () => {
     const r = run([cmd.name]);
     assert.equal(r.status, 2);

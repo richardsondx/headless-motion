@@ -121,6 +121,91 @@ test("computedGeometry scales about the centre and rotates to an AABB", () => {
   assert.deepEqual(rot.bbox, [110, -30, 310, 370]);
 });
 
+// One rect node with a single track, for ledger scale tests. The
+// scene is built in code so the sampled scale at a mid frame comes
+// from the evaluator, not from a hand-written state.
+function scaleScene({ box, transform, prop, from, to, end = 24 }) {
+  return {
+    schema: "hme.scene/1.0",
+    meta: { id: "ledger-scale-test", fps: 24, width: 1920, height: 1080, duration: end + 1, seed: 1337, register: "dark" },
+    fonts: [{ family: "Montserrat", weight: 700, src: "fonts/Montserrat-Bold.ttf" }],
+    palette: { ground: "#101820", ink: "#f4f1ea", accent: "#e8a33d" },
+    nodes: [{
+      id: "rect", type: "shape", parent: null, z: 1,
+      box, transform,
+      props: { kind: "rect", fill: "accent", radius: 0 },
+    }],
+    timeline: [{ node: "rect", prop, keys: [{ f: 0, v: from }, { f: end, v: to }] }],
+    events: [],
+  };
+}
+
+function rowAt(ledger, elementId, frame) {
+  return ledger.rows.find((r) => r.element_id === elementId && r.frame === frame);
+}
+
+test("ledger scaleX track with anchorX 0 grows from the left edge", () => {
+  const scene = scaleScene({
+    box: { x: 100, y: 100, w: 200, h: 100 },
+    transform: { anchorX: 0, anchorY: 50 },
+    prop: "transform.scaleX", from: 0, to: 1,
+  });
+  const ledger = buildComputedLedger(scene, 0, 25);
+  // At f0 the width is 0 and the right edge sits on the left edge.
+  assert.deepEqual(rowAt(ledger, "rect", 0).bbox_px, [100, 100, 100, 200]);
+  // At f12 scaleX is 0.5: half the width, left edge fixed at 100.
+  const mid = rowAt(ledger, "rect", 12);
+  assert.deepEqual(mid.bbox_px, [100, 100, 200, 200]);
+  assert.deepEqual(mid.centre_px, [150, 150]);
+  assert.deepEqual(rowAt(ledger, "rect", 24).bbox_px, [100, 100, 300, 200]);
+});
+
+test("ledger scaleY track with anchorY 0 grows from the top edge", () => {
+  const scene = scaleScene({
+    box: { x: 100, y: 100, w: 200, h: 100 },
+    transform: { anchorX: 100, anchorY: 0 },
+    prop: "transform.scaleY", from: 0, to: 1,
+  });
+  const ledger = buildComputedLedger(scene, 0, 25);
+  assert.deepEqual(rowAt(ledger, "rect", 0).bbox_px, [100, 100, 300, 100]);
+  // At f12 scaleY is 0.5: half the height, top edge fixed at 100.
+  const mid = rowAt(ledger, "rect", 12);
+  assert.deepEqual(mid.bbox_px, [100, 100, 300, 150]);
+  assert.deepEqual(rowAt(ledger, "rect", 24).bbox_px, [100, 100, 300, 200]);
+});
+
+test("ledger uniform scale track with no anchor scales about the centre", () => {
+  const scene = scaleScene({
+    box: { x: 100, y: 100, w: 200, h: 100 },
+    transform: undefined,
+    prop: "transform.scale", from: 1, to: 2,
+  });
+  const ledger = buildComputedLedger(scene, 0, 25);
+  // At f12 the scale is 1.5: 300 by 150 about the centre (200, 150).
+  const mid = rowAt(ledger, "rect", 12);
+  assert.deepEqual(mid.bbox_px, [50, 75, 350, 225]);
+  assert.deepEqual(mid.centre_px, [200, 150]);
+  assert.deepEqual(rowAt(ledger, "rect", 24).bbox_px, [0, 50, 400, 250]);
+});
+
+test("ledger rotated rect with scaleX track and anchor matches the four-corner map", () => {
+  const scene = scaleScene({
+    box: { x: 100, y: 100, w: 200, h: 100 },
+    transform: { rotation: 90, anchorX: 0, anchorY: 50 },
+    prop: "transform.scaleX", from: 0, to: 1,
+  });
+  const ledger = buildComputedLedger(scene, 0, 25);
+  // Origin (100, 150). At f12 scaleX is 0.5: corners map to an
+  // axis-aligned box x 50..150, y 150..250, centre (100, 200).
+  const mid = rowAt(ledger, "rect", 12);
+  assert.deepEqual(mid.bbox_px, [50, 150, 150, 250]);
+  assert.deepEqual(mid.centre_px, [100, 200]);
+  // At f24 scaleX is 1: the box is x 50..150, y 150..350.
+  const end = rowAt(ledger, "rect", 24);
+  assert.deepEqual(end.bbox_px, [50, 150, 150, 350]);
+  assert.deepEqual(end.centre_px, [100, 250]);
+});
+
 test("cameraAtFrame is zoom 1 without a map node", () => {
   const scene = loadScene(join(ROOT, "tests", "fixtures", "scene-min.json"));
   assert.deepEqual(cameraAtFrame(scene, 60), { zoom_ratio: 1, centre_lon: null, centre_lat: null, subject: null });
