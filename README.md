@@ -6,166 +6,84 @@
 
 ![Headless Motion hero](assets/brand/hero.png)
 
-Motion graphics from JSON scenes. No timeline UI, no manual keyframes.
+Headless Motion lets an AI agent make motion graphics in code, with no timeline or editor.
 
-Headless Motion is a toolkit that lets an AI agent design, build, and check motion graphics entirely in code, with no screen, player, or timeline, so the agent creates and measures animation by numbers instead of watching it.
-
-An agent writes a scene, the engine renders the video, and a checker scores every frame against a reference. The goal is animation on par with top YouTube animation channels, produced end to end without a human opening an editor.
+- **What it is:** a toolkit. A scene is a JSON file, a render is one command, a check is numbers.
+- **Who it is for:** AI agents that do the work, and the human who gives one final look.
+- **Why headless:** an agent cannot scrub a timeline or drag keyframes. It can write files and read numbers.
+- **How it works:** the agent writes a scene, the engine renders it, and a checker scores every frame against a reference.
 
 ## Proof
 
-The first proof the toolkit works is a 1-to-1 clone of the first 30 seconds of a Kurzgesagt Short. Cloning was the first proof, not the whole tool. The toolkit itself is the general capability: an agent doing motion design headlessly.
+The first proof is a 1-to-1 clone of the first 30 seconds of a Kurzgesagt Short.
+
+- **Source:** Kurzgesagt "Could Humans Evolve Flight?", first 30 seconds, 720p, 60 fps, vertical.
+- **Clone:** 720x1280, 24 fps, 720 frames, 30.0 seconds.
+- **Operator:** Muse Spark ran the tools. Cost was $0.
+- **Scope:** proven on one style only, flat 2D vector animation. 3D and grain are untested.
 
 <video src="docs/proof/side-by-side-30s.mp4" width="720" controls></video>
 
-Above: the side-by-side video, reference on the left, clone on the right, 30 seconds, 24 fps. Source: Kurzgesagt "Could Humans Evolve Flight?", first 30 seconds, 720p, 60 fps, vertical. Clone: 720x1280, 24 fps, 720 frames, 30.0 seconds.
+Side-by-side video: **Reference on the left, Clone on the right.** 30 seconds, 24 fps.
 
-An independent judge re-verified every number with its own scripts. The verdict is PASS WITH GAPS.
+An independent judge re-checked every number with its own scripts. Its verdict: **PASS WITH GAPS.**
 
 | Gate | Mean SSIM | Mean PSNR | Min SSIM | LPIPS | Frames below 0.90 |
 | --- | --- | --- | --- | --- | --- |
 | Gate 1, first 10 s, 240 frames | 0.9926 | 36.21 dB | 0.9887 | 0.0134 | 0 |
 | Gate 2, full 30 s, 720 frames | 0.9938 | 36.16 dB | 0.9887 | 0.0106 | 0 |
 
-Gate 2 had 0 frames below 0.90 and 0 frames below 0.85. It also measured flat colour max 1.71 Delta E (bar 3) and text shift max 0.5 px (bar 2). The human gate passed on November 9, 2026: the side-by-side was watched at full speed and 0.25x with no visible mismatch. Cost was $0, Muse Spark only.
+- **Gate 2 extra checks:** 0 frames below 0.85. Flat colour max 1.71 Delta E (bar 3). Text shift max 0.5 px (bar 2).
+- **Human gate:** passed November 9, 2026. Watched at full speed and at 0.25x, with no visible mismatch.
 
-Proven on one style: flat 2D vector animation. 3D and grain are untested.
+### Evidence gallery
 
-### Evidence stills
+Each still shows **Reference on the left, Clone on the right.** Frame numbers are clone frames at 24 fps. Click a thumbnail for full size.
 
-Side-by-side stills, reference on the left, clone on the right.
-
-![Morph, frame 197](docs/proof/sbs-f197.png)
-![Downstroke, frame 216](docs/proof/sbs-f216.png)
-![Wing fold, frame 516](docs/proof/sbs-f516.png)
-![Thinnest frame, frame 600](docs/proof/sbs-f600.png)
+| | | | |
+| --- | --- | --- | --- |
+| <a href="docs/proof/sbs-f197.png"><img src="docs/proof/gallery-sbs-f197.png" width="180" alt="Morph, frame 197"></a> | <a href="docs/proof/sbs-f216.png"><img src="docs/proof/gallery-sbs-f216.png" width="180" alt="Downstroke, frame 216"></a> | <a href="docs/proof/sbs-f516.png"><img src="docs/proof/gallery-sbs-f516.png" width="180" alt="Wing fold, frame 516"></a> | <a href="docs/proof/sbs-f600.png"><img src="docs/proof/gallery-sbs-f600.png" width="180" alt="Lowest PSNR frame, frame 600"></a> |
+| Morph, frame 197, 8.2 s. Reference left, Clone right. | Downstroke, frame 216, 9.0 s. Reference left, Clone right. | Wing fold, frame 516, 21.5 s. Reference left, Clone right. | Lowest PSNR frame, frame 600, 25.0 s. Reference left, Clone right. |
 
 ### Difference maps
 
-Absolute difference, amplified 8x. Bright pixels are where the clone differs from the reference. The maps are nearly black, which is the point.
+Each map shows the absolute difference between Reference and Clone, amplified 8x. Bright pixels mark where the Clone differs. Nearly black means nearly identical.
 
-![Difference map, frame 197](docs/proof/diff-f197-8x.png)
-![Difference map, frame 600](docs/proof/diff-f600-8x.png)
+| | |
+| --- | --- |
+| <a href="docs/proof/diff-f197-8x.png"><img src="docs/proof/diff-f197-8x.png" width="180" alt="Difference map, frame 197"></a> | <a href="docs/proof/diff-f600-8x.png"><img src="docs/proof/diff-f600-8x.png" width="180" alt="Difference map, frame 600"></a> |
+| Frame 197, 8.2 s. Clone minus Reference, 8x. | Frame 600, 25.0 s. Clone minus Reference, 8x. |
 
 ### Who did what
 
-Three actors, not two. We built the tools. Muse Spark was the operator that uses them. Headless Motion is the instruments, built specifically so a model can operate them. The model decides. The tools execute. We built the tools so the model could do the job at all.
-
-## Why headless
-
-After Effects is built for a human hand on a timeline. An agent cannot scrub, drag keyframes, or judge a frame by eye. Headless Motion turns the whole job into files an agent can write and check: a scene is JSON, a render is one command, and the verdict is numbers, not an opinion.
-
-## How it works
-
-![Render pipeline](assets/brand/architecture.svg)
-
-## The interface is a language
-
-Headless Motion has no timeline to drag. Its interface is three things an agent can read and write.
-
-1. A scene file. One JSON file, schema `hme.scene/1.0`, holds the whole video: nodes, palette, fonts, and the timeline.
-2. A command. One line renders it: `node src/renderer/cli.mjs render <scene> --profile final --out <dir>`.
-3. A verdict. One check scores every frame against the reference and says pass or fail, with the numbers behind it.
-
-An agent drives it through five prompt files in `prompts/`, which teach it the scene format, the renderer, the map system, the chart and text module, and the frame checker. Nothing in the tool needs a human hand, a mouse, or an eye. That is why an agent can run it end to end, and why the proof is a number, not a feeling.
-
-If you can write the scene, you can make the video. If you can read the check, you can tell if it worked.
-
-## Tools
-
-Each tool is a file an agent can call, not a screen to open. Status is what the last independent check said.
-
-### Core tools
-
-| Tool | File | What it does | Status |
-| --- | --- | --- | --- |
-| Reference teardown | `src/reference/teardown.py` | Measures a reference video into a profile: palette with source frame and coords, geometry as ratios, shots, cuts, events, per-colour trajectories, VTracer traces per keyframe | Pass, judge confirmed |
-| Easing and timing picker | `src/scene/pick-ease.mjs` | Ranks easing curves and springs by measured error against a reference trajectory, and ranks flow-guided warp intervals per shot | Pass, judge confirmed |
-| Defect taxonomy and log | `src/checker/defects.json`, `src/checker/defects.py` | Maps every checker failure code to a defect class, likely cause, and suggested fix; logs one row per failure and writes a summary | Pass, judge confirmed |
-| Banned list | `banned.json` | Patterns that must never ship again, linted before rendering; grows from confirmed defects | Pass, judge confirmed |
-| Frame checker | `src/checker/` | Scores every frame against a reference: SSIM, PSNR, LPIPS, flat colour, motion, text shift, layer layout | In use, Gate 3 LPIPS still being measured |
-| Renderer | `src/renderer/` | Headless Chromium capture plus ffmpeg encode, deterministic, 1920x1080 at 24 fps | In use |
-| Map module | `src/map/` | Draws real Natural Earth geography with a fixed visual system | In use |
-| Chart and text module | `src/scene/` | Bars, lines, and kinetic type | In use |
-| CLI | `src/cli/hme.mjs` | One command surface for render, check, compare, and player pass | In use |
-| Player pass | `run-player-pass.py` | Screenshots our own video the same way the reference is screenshotted, so the check compares like with like | In use |
-
-The three new tools in this table, teardown, picker, and taxonomy with banned list, were built in November 2026 to fix what the engine could not do before: it could not see a reference style, it could not pick an ease by numbers, and it forgot every failure it found.
-
-### Measurement tools
-
-One `hme` command measures one thing, and every measurement returns the same shape: a verdict, the numbers, a correction in scene terms, the next most useful command, and its limits. Run them from the repo root as `node src/cli/hme.mjs <command>`. An agent reads the correction and applies it; it does not guess from a score.
-
-| Tool | Command | What it measures | Status |
-| --- | --- | --- | --- |
-| Compare | `hme compare` | Full frame scores: SSIM, PSNR, LPIPS, flat colour | In use |
-| Diagnose | `hme diagnose` | Names the kind of error and the fix, from a frame pair | In use |
-| Trace | `hme trace` | Profiles a video: palette, labels, trajectories, cuts | In use |
-| Frame style | `hme frame-style` | Pace per frame plus a plain-language style prompt | Built, test passing |
-| Control | `hme control` | The ceiling a perfect clone can reach, by re-encoding our own video | In use |
-| Extract | `hme extract` | Cuts a pixel region out of a reference frame, such as the rifle | In use |
-| Fonts | `hme fonts` | Ranks free fonts by glyph shape against a reference label | In use |
-| Zoom velocity | `hme zoom-velocity` | Zoom speed curve per second, and flags knots where the curve bends | Done, judge confirmed |
-| Contour | `hme contour` | Shape difference between two outlines, Hausdorff and Chamfer distance | Done, judge confirmed |
-| Blur and grain | `hme blur-grain` | Blur and grain ratios, reference vs ours | Built, judge not yet run |
-| Vignette | `hme vignette` | Corner darkness, matched mean ratio | Done, judge confirmed |
-| Colour and halo | `hme colour` | Whole-frame colour histograms and halo falloff around a centre | Done, judge confirmed |
-| Layering | `hme layering` | Z-order and pixel counts per layer: badge, text, halo, dot | Done, judge confirmed |
-| Type | `hme type` | Typography: font match, glyph shape, spacing, weight | Judge confirmed |
-| Timing | `hme timing` | Timing offset per object, median and warp table, not one global shift | Built, judge not yet done |
-
-Two facts an agent should know before trusting a number. First, the ceiling: a perfect clone scores about 0.96 SSIM, not 1.00, because YouTube compression alone costs 0.03 to 0.07. The control tool measures that ceiling for the exact pair. Second, the timing offset is not constant: on the Seg4 map the badge is 0.46 to 1.08 seconds early depending on the second, median 0.71. A single delay leaves about 20 px of error; the warp table leaves about 2 px. The timing tool reports both.
-
-### Authoring tools
-
-These close the gaps the measurement tools found in the Kurzgesagt "Alcohol is AMAZING" first 5 seconds. Each one is a Handover run with its own predicate, verifier, and judge. Status is from each run's own status file, November 9, 2026.
-
-| Tool | What it adds | Status |
-| --- | --- | --- |
-| Character rig | A skeleton with named parts and pivots, so eyes open, eyebrows raise, and arms lift by keyframing joints instead of hand-drawing every shape | 70%, proof render done |
-| Illustration tracing | Converts reference art into vector paths with VTracer, Potrace fallback, and a pixel cutout fallback for subjects that will not trace | 20%, monster traces at SSIM 0.90, skulls pass as pixel cutout at 0.99 |
-| Gradients and glow | Gradient fills, glow as a crisp shape plus halo, and soft blurred edges, for clouds, bokeh, and foam shading | 50%, proof passes within the colour bar |
-| Particle system | Deterministic particles from a seed, so the same scene renders byte-identical: foam bubbles, sparkles, drifting clouds | Built, final verification pending |
-| Automated fixing | Reads a measurement report and applies the correction to the scene, writing a new versioned file, never editing in place | 60%, five fixer functions done |
-
-A note on scope: the rig proves the mechanism with simple shapes. A faithful character still needs traced shapes for hair, face shading, and clothing, which is the tracing run's job. The two runs compose; neither replaces the other.
-
-## Frame style, code models, and the frame 184 grids
-
-### Mapping a reference to numbers
-
-`hme trace` maps a reference video to a style profile. It measures palette colors, label positions, per-color trajectories, cuts, zoom, and easing from the frames. The profile gives a code model numbers to write from instead of guesses. Run it as `node tools/map-frames.mjs <video.mp4> --start-s <n> --end-s <n> --out <dir>`.
-
-### Turning measurements into words
-
-`hme frame-style` watches a reference video frame by frame for a set window. It measures pace as changed fraction, mean change per second, and longest static run. It writes a plain-language prompt from those numbers only, so another model can reproduce the style from text alone. The prompt names the window, the frame count, the changed fraction, and the mean change per second. On the 24-frame Headless Motion descent clip, it reads 24 frames at 24 fps with a changed fraction of 0.3478. Run it as `node tools/frame-style.mjs <video.mp4> --start-s <n> --end-s <n> --out <prompt.md>`. Both tools are also MCP tools, so an agent can call `trace` and `frame-style` through `hme mcp`.
-
-### Code model plus Headless Motion
-
-A code model writes scene JSON from the frame-to-style measurements. Headless Motion renders that JSON deterministically, so the same scene gives the same video every time. The combination wins on motion and exactness, not on drawing. The frame 184 experiment proved motion correct. The descent measured 50.3 px against 57.3 px expected, and the hold measured exactly 95.2 px. It proved gradient and colors exact: the code models reproduced all 5 measured RGB stops. Drawing stays the bottleneck. The Headless Motion figure measured 0.570 of frame width against the 0.60 target. That gap equals about half a limb thickness per side.
-
-### Comparison grids
-
-The frame 184 grids gave every model the same prompt v8, unchanged. Image models draw pixels, so the pose flows but the crop fails. Code models write code, so the gradient stays exact but the pose stiffens. Measured figure widths against the 0.60 target: Flare 0.548, Sunburst 0.533, Fable 0.39, Terra 0.22, Headless Motion 0.570. Both image models drew the full head, so both missed the crown crop. Both code models hung the arms at their sides, so both missed the stance and the width. Every render got the gradient right, with no sun and no added shape. The comparison cost about $1.64 across 8 model generations. Fable needed 4 tries, because reasoning consumed the whole token budget 3 times before effort-low produced an SVG. Grids live in `study/frame184-comparison/` with the comparison log and the Fable feedback.
+- **We built the tools:** the renderer, the checker, and the measurement commands.
+- **Muse Spark operated them:** it wrote scenes, ran renders, and applied fixes.
+- **Richardson gave the final look:** one human gate after the machine PASS.
 
 ## What it renders
 
-These are actual frames from real renders, not mockups.
+Both images are real frames from real renders. Neither is a mockup.
 
-<img src="assets/brand/frame-map.png" width="49%" alt="Actual rendered map frame"> <img src="assets/brand/frame-title.png" width="49%" alt="Actual rendered title frame">
+| | |
+| --- | --- |
+| <img src="assets/brand/frame-map.png" width="360" alt="Map frame from map-sample, mid-travel, no labels on screen"> | <img src="assets/brand/frame-title.png" width="360" alt="Test fixture scene-min: one line of text and one orange square"> |
+| **Real scene: map-sample.** Final profile. The camera is mid-travel, so no labels show yet. | **Test fixture: scene-min.** Final profile. One text line and one orange square. |
+| What to learn: the map module draws real Natural Earth geography with its fixed visual system. | What to learn: this is the smallest valid scene. It is the file the setup command renders. |
 
-Left: map-sample, final profile, 5 seconds in. Right: scene-min, final profile, 5 seconds in.
+## How you use it
 
-## Quickstart
+### Setup
 
-Requirements: Node 20 or newer, ffmpeg, and Chromium (installed through Playwright).
+- **Node:** version 20 or newer.
+- **ffmpeg:** installed on the path.
+- **Chromium:** installed through Playwright.
 
 ```bash
 npm install
 node src/renderer/cli.mjs render tests/fixtures/scene-min.json --profile draft --out out/scene-min
 ```
 
-That renders a 10 second, 1920x1080, 24 fps clip. Profiles:
+That renders the scene-min fixture: 10 seconds, 1920x1080, 24 fps.
 
 | Profile | Size | Supersample | Preset | CRF | Use |
 | --- | --- | --- | --- | --- | --- |
@@ -174,11 +92,47 @@ That renders a 10 second, 1920x1080, 24 fps clip. Profiles:
 | final | 1920x1080 | 1.5 | medium | 14 | Deliver |
 | final-max | 1920x1080 | 2 | slow | 14 | Best quality |
 
-Render only part of a scene with `--frames 0:120`. Override any scene value without editing the file with repeatable `--set nodes.title.props.text="Hello"`.
+- `--frames 0:120` renders only part of a scene.
+- `--set nodes.title.props.text="Hello"` overrides a scene value without editing the file. You can repeat it.
+
+### Three doors
+
+| Door | Who uses it | What it is |
+| --- | --- | --- |
+| Chat plus human gate | The human | You talk in chat. The agent does the work. You give one final look after a machine PASS. |
+| CLI | Agents with a shell, and scripts | `node src/cli/hme.mjs <command>`, 28 commands. |
+| MCP | Agents without a shell | `hme mcp`, 9 tools. |
+
+You do not run commands yourself. The CLI and MCP are machine doors.
+
+**CLI commands (28):** render, validate, export, gates, compare, layering, blur-grain, trace, frame-style, timing, diagnose, colour, contour, ledger, path, type, control, extract, fonts, player-pass, context, mcp, zoom-velocity, vignette, gradient, composition, rig, fix.
+
+**MCP tools (9):** compare, trace, diagnose, control, extract, fonts, player-pass, context, frame-style.
+
+- Render and fix are **not** in MCP today. An agent needs the CLI for those.
+
+### The human gate
+
+The gate opens once, only after a machine PASS. It is the only step that needs a human.
+
+1. The agent sends one verdict line, the side-by-side video, and the worst frames as stills.
+2. Watch the video once at full speed, start to end.
+3. Watch it again at 0.25x, start to end.
+4. Give one of two answers:
+   - **Approve:** say "Approve, no mismatch."
+   - **Reject:** give a time in seconds, a side (clone or reference), and what is wrong.
+
+- A reject with a time and a side lets the agent fix it without asking you anything.
+- A reject with no time gets one question back: "At what time did you see it?"
+- Approve does not approve publish, send, pay, delete, or deploy. Those need their own approval.
 
 ## Scene format
 
-A scene is one JSON file, schema `hme.scene/1.0`. Nodes are text, shapes, maps, or charts. A timeline moves node properties between keyframes with named easings. An example (shortened):
+A scene is one JSON file, schema `hme.scene/1.0`.
+
+- **Nodes:** text, shapes, maps, or charts.
+- **Timeline:** moves node properties between keyframes with named easings.
+- **Palette and fonts:** named once, used by name in nodes.
 
 ```json
 {
@@ -206,24 +160,97 @@ A scene is one JSON file, schema `hme.scene/1.0`. Nodes are text, shapes, maps, 
 }
 ```
 
-Full format docs live in `prompts/01-scene-format.md`. The map module (`src/map/`) draws real Natural Earth geography with a fixed visual system: two registers, a five colour palette, Montserrat labels, one focus at a time. The chart and text module (`src/scene/`) covers bars, lines, and kinetic type.
+- **Full docs:** `prompts/01-scene-format.md`.
+- **Agent prompts:** five files in `prompts/` teach the scene format, renderer, map system, chart and text module, and frame checker.
+- **Map module (`src/map/`):** two registers, a five colour palette, Montserrat labels, one focus at a time.
 
-## Verification
+## How it works
 
-Every render can be scored against a reference, frame by frame. The checker (`src/checker/`) compares our frames with the reference frames and reports four scores, plus a layer layout check: element positions as ratios, distances to frame borders, zoom as a ratio curve, and gaps between elements per layer.
-
-What the four scores mean, in plain words:
-
-- SSIM: how close the picture matches, from 0 to 1. Higher is closer. 1.00 is identical.
-- PSNR: how clean the picture is, in dB. Higher is cleaner.
-- LPIPS: how different the picture looks to a trained model. Lower is closer. 0 is identical.
-- Flat colour: colour difference in Delta E. Under 3 means the eye cannot tell the colours apart.
+![Render pipeline](assets/brand/architecture.svg)
 
 ![Write, render, check, fix loop](assets/brand/loop.svg)
 
-A clone passes only if it meets every number in the pass bar for its segment. The pass bar is a target, not a result. It is frozen as pred-v1, so the bar cannot move to make a fail look like a pass.
+The loop has four steps. The agent repeats them until every number passes.
 
-The four test segments are Kurzgesagt 1, Kurzgesagt 2, TED-Ed glue vs tape, and Search Party map. Kurzgesagt 1 and 2 share the same bar, so they share one row.
+## Tools
+
+Each tool is a file or command an agent calls. Status is what the last independent check said.
+
+### Core tools
+
+| Tool | File | What it does | Status |
+| --- | --- | --- | --- |
+| Reference teardown | `src/reference/teardown.py` | Measures a reference into a profile: palette, geometry, shots, cuts, trajectories, traces | Pass, judge confirmed |
+| Easing picker | `src/scene/pick-ease.mjs` | Ranks easings and springs by measured error against a reference trajectory | Pass, judge confirmed |
+| Defect taxonomy | `src/checker/defects.json`, `src/checker/defects.py` | Maps each failure code to a cause and a fix, and logs it | Pass, judge confirmed |
+| Banned list | `banned.json` | Patterns that must never ship again, linted before rendering | Pass, judge confirmed |
+| Frame checker | `src/checker/` | Scores every frame: SSIM, PSNR, LPIPS, flat colour, motion, text shift, layout | In use, Gate 3 LPIPS still being measured |
+| Renderer | `src/renderer/` | Headless Chromium capture plus ffmpeg encode, 1920x1080 at 24 fps | In use |
+| Map module | `src/map/` | Draws real Natural Earth geography | In use |
+| Chart and text module | `src/scene/` | Bars, lines, and kinetic type | In use |
+| CLI | `src/cli/hme.mjs` | One command surface for render, check, compare, and player pass | In use |
+| Player pass | `run-player-pass.py` | Screenshots our video the same way as the reference, so the check compares like with like | In use |
+
+### Measurement tools
+
+Every measurement returns the same shape: a verdict, the numbers, a correction in scene terms, the next command, and its limits.
+
+| Tool | Command | What it measures | Status |
+| --- | --- | --- | --- |
+| Compare | `hme compare` | SSIM, PSNR, LPIPS, flat colour | In use |
+| Diagnose | `hme diagnose` | Names the error and the fix from a frame pair | In use |
+| Trace | `hme trace` | Palette, labels, trajectories, cuts | In use |
+| Frame style | `hme frame-style` | Pace per frame plus a plain-language style prompt | Built, test passing |
+| Control | `hme control` | The ceiling a perfect clone can reach | In use |
+| Extract | `hme extract` | Cuts a pixel region out of a reference frame | In use |
+| Fonts | `hme fonts` | Ranks free fonts by glyph shape against a reference label | In use |
+| Zoom velocity | `hme zoom-velocity` | Zoom speed per second, and where the curve bends | Done, judge confirmed |
+| Contour | `hme contour` | Outline difference, Hausdorff and Chamfer distance | Done, judge confirmed |
+| Blur and grain | `hme blur-grain` | Blur and grain ratios, reference vs ours | Built, judge not yet run |
+| Vignette | `hme vignette` | Corner darkness, matched mean ratio | Done, judge confirmed |
+| Colour and halo | `hme colour` | Colour histograms and halo falloff | Done, judge confirmed |
+| Layering | `hme layering` | Z-order and pixel counts per layer | Done, judge confirmed |
+| Type | `hme type` | Font match, glyph shape, spacing, weight | Judge confirmed |
+| Timing | `hme timing` | Timing offset per object, median and warp table | Built, judge not yet done |
+
+Two facts to know before trusting a number:
+
+- **Ceiling:** a perfect clone scores about 0.96 SSIM, not 1.00. YouTube compression alone costs 0.03 to 0.07.
+- **Timing drifts:** on the Seg4 map, the badge runs 0.46 to 1.08 s early, median 0.71. One global delay leaves about 20 px of error. The warp table leaves about 2 px.
+
+### Authoring tools
+
+These close gaps found in the Kurzgesagt "Alcohol is AMAZING" first 5 seconds. Status is from November 9, 2026.
+
+| Tool | What it adds | Status |
+| --- | --- | --- |
+| Character rig | Named joints, so eyes, brows, and arms move by keyframe | 70%, proof render done |
+| Illustration tracing | Reference art to vector paths, with VTracer, Potrace, and pixel cutout fallbacks | 20%, monster traces at SSIM 0.90, skulls pass as pixel cutout at 0.99 |
+| Gradients and glow | Gradient fills, glow, and soft edges | 50%, proof passes within the colour bar |
+| Particle system | Seeded particles that render byte-identical | Built, final verification pending |
+| Automated fixing | Applies a report's correction to a new scene version, never in place | 60%, five fixer functions done |
+
+- The rig proves the mechanism with simple shapes. A faithful character still needs traced hair, face shading, and clothing.
+
+### Frame 184 study
+
+- **Motion is close, not exact:** the descent measured 50.3 px against 57.3 px expected, a 7 px gap. The hold measured 95.2 px, exact.
+- **Colour is exact:** code models reproduced all 5 measured RGB stops.
+- **Drawing is the bottleneck:** the figure measured 0.570 of frame width against a 0.60 target.
+- **Model widths vs 0.60:** Flare 0.548, Sunburst 0.533, Fable 0.39, Terra 0.22, Headless Motion 0.570.
+- **Cost:** about $1.64 across 8 model generations.
+- **Files:** `study/frame184-comparison/`.
+
+## Verification
+
+The checker (`src/checker/`) reports four scores plus a layer layout check.
+
+- **SSIM:** how close the picture matches, 0 to 1. 1.00 is identical.
+- **PSNR:** how clean the picture is, in dB. Higher is cleaner.
+- **LPIPS:** how different it looks to a trained model. 0 is identical.
+- **Flat colour:** colour difference in Delta E. Under 3, the eye cannot tell them apart.
+
+A clone passes only if it meets every number in its segment's bar. The bar is frozen as pred-v1, so it cannot move.
 
 | Segment | SSIM | PSNR | LPIPS | Flat colour |
 | --- | --- | --- | --- | --- |
@@ -231,22 +258,24 @@ The four test segments are Kurzgesagt 1, Kurzgesagt 2, TED-Ed glue vs tape, and 
 | TED-Ed glue vs tape | 0.95 | 35 dB | 0.08 | under 3 Delta E |
 | Search Party map | 0.96 | 35 dB | 0.08 | under 3 Delta E |
 
-For example, the TED-Ed baseline scored SSIM 0.686 against its 0.95 bar, so it fails. The bar tells you what pass means. The scores in [BENCHMARKS.md](BENCHMARKS.md) tell you what we actually measured.
-
-A render also has to be deterministic: two runs of the same profile give a byte identical video. The checker never scores a frame it has already seen with a lowered bar.
+- **Example fail:** the TED-Ed baseline scored SSIM 0.686 against its 0.95 bar.
+- **Determinism:** two runs of the same profile give a byte-identical video.
+- **Measured scores:** [BENCHMARKS.md](BENCHMARKS.md).
 
 ## Speed
 
-Measured November 7, 2026, on a 4 core Linux VM with no GPU, 10 second clip at 1920x1080 and 24 fps:
+Measured November 7, 2026: 4 core Linux VM, no GPU, 10 second clip, 1920x1080, 24 fps.
 
-| Profile | Time before fast render | Time after fast render |
+| Profile | Before fast render | After fast render |
 | --- | --- | --- |
 | draft | 76 to 88 s | 25 to 35 s |
 | final | 140 to 243 s | 37 to 57 s |
 
-The bottleneck is capture, not encoding: in one measured draft run, ffmpeg encoded all 240 frames in 52 seconds while Chromium screenshots took the other 640. The fast render path, built November 8, attacks exactly that: a map layer cache, frame dedup, and a real-time preview mode. Map final fell from 242.6 s to 57.0 s, a 4.3x gain, with byte-identical output across three runs. Quality held: old vs new renders score SSIM 0.99999. The full numbers live in `benchmark/results-2026-11-07.json` and the run report.
-
-A speed log tracks every timed step across runs, so slow steps stay visible: `speed-log.md`. Each line records the run, unit, task, frames, duration, and seconds per frame. Baselines run 7 to 12 seconds per frame on a loaded VM; regression chunks run 2.6 to 3.2.
+- **Bottleneck is capture:** in one draft run, ffmpeg took 52 s and Chromium screenshots took 640 s.
+- **Fast render path:** a map layer cache, frame dedup, and a real-time preview mode.
+- **Map final:** 242.6 s down to 57.0 s, a 4.3x gain, byte-identical across three runs.
+- **Quality held:** old vs new renders score SSIM 0.99999.
+- **Logs:** `benchmark/results-2026-11-07.json` and `speed-log.md`.
 
 ## Project structure
 
@@ -261,33 +290,32 @@ src/
   rig/        character rig schema and expander
   fix/        automated fixing: timing, position, text, refuse, gate
 banned.json   patterns that must never ship again, linted before rendering
-speed-log.md  per-step timing log: run, unit, frames, duration, sec per frame
+speed-log.md  per-step timing log
 tests/        fixtures and unit tests (76 unit, 13 browser)
 prompts/      the five prompt files an agent uses to drive the engine
 benchmark/    timing runs and before/after results
-verify-seg4/  the Search Party map clone: measured trace, numbers, reports
+verify-seg4/  the Search Party map clone: trace, numbers, reports
 ```
 
 ## Status
 
-Research preview. What is true today:
+Research preview. True today:
 
-- The engine renders, deterministically, at 1920x1080.
-- The checker runs with LPIPS on every frame.
-- The layer layout check is built and measured: 31 seconds for four paired stills.
-- The fast render path (map layer cache, frame dedup, real-time preview) is built and measured: map final 242.6 s to 57.0 s, byte-identical across runs.
-- Fifteen measurement commands are built under one `hme` CLI, each returning a verdict, numbers, a correction in scene terms, and its limits.
-- Five authoring capabilities are being built to close the gaps the measurement tools found: character rig, illustration tracing, gradients and glow, particle system, and automated fixing.
+- The engine renders deterministically at 1920x1080.
+- The checker runs LPIPS on every frame.
+- The layer layout check takes 31 seconds for four paired stills.
+- The fast render path is built: map final 242.6 s to 57.0 s.
+- Fifteen measurement commands run under one `hme` CLI.
+- Five authoring tools are in progress: rig, tracing, gradients and glow, particles, and fixing.
+- Untested: original work with no reference. The gate does not open for it yet.
 
-## Benchmarks
+**Roadmap:** finish the five authoring tools. Then the Seg4 v5 true clone. Then ten new sequences. Then a native Skia renderer with no browser.
 
-Recent results live in [BENCHMARKS.md](BENCHMARKS.md). It holds the November 8, 2026 scores against the frozen bar, with claimed vs judge confirmed marked. Full method and history live in [benchmark/README.md](benchmark/README.md).
-
-Roadmap: finish the five authoring capabilities, then the Seg4 v5 true clone, then ten new sequences with a side by side play page, then a native Skia renderer that drops the browser entirely.
+Full method and history: [benchmark/README.md](benchmark/README.md).
 
 ## Development
 
-Pushes go through the GitHub git database API, because the stored GitHub credential is scoped to `api.github.com` and does not work for git over HTTPS:
+The stored GitHub credential only works for `api.github.com`. Pushes go through the git database API:
 
 ```bash
 ~/workspace/custom-connectors/custom.legacy-github/bin/gh_push.py \
