@@ -52,7 +52,7 @@ export const COMMANDS = [
   {
     name: "render",
     summary: "Render a scene to video.",
-    usage: "hme render <scene.json> --profile previs|draft|final|final-max|preview-rt [--render-out <dir>] [--out <report.json>]",
+    usage: "hme render <scene.json> --profile previs|draft|final|final-max|preview-rt [--render-out <dir>] [--out <report.json>] [--watch [--port <n>]]",
     args: ["<scene.json>  Path to the scene file."],
     options: [
       "--profile <name>  Render profile: previs, draft, final, final-max, or preview-rt. Required.",
@@ -64,6 +64,8 @@ export const COMMANDS = [
       "--keep-frames  Keep the rendered frame images.",
       "--verify-determinism  Render twice and fail if any frame differs.",
       "--realtime  Shorthand for --profile preview-rt, a non-deterministic preview.",
+      "--watch  Start a local preview page (localhost only) that shows the latest frame while the render runs, then the finished video. Headless stays the default without it.",
+      "--port <n>  Port for --watch. Default 0, the OS picks a free port.",
     ],
     example: "hme render tests/fixtures/scene-min.json --profile previs --out out/scene-min-render.json",
   },
@@ -154,8 +156,8 @@ export const COMMANDS = [
   {
     name: "frame-style",
     summary: "Measure a video frame by frame and write a plain-language style prompt from the pace numbers.",
-    usage: "hme frame-style <video.mp4> --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]",
-    args: ["<video.mp4>  Path to the reference video."],
+    usage: "hme frame-style video.mp4 --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]",
+    args: ["video.mp4  Path to the reference video."],
     options: [
       "--start-s <n>  Start time in seconds. Required.",
       "--end-s <n>  End time in seconds. Required, and after --start-s.",

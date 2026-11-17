@@ -9,6 +9,7 @@ import { resolve, dirname } from "node:path";
 import { chromium } from "playwright-core";
 import { writeFileRetryAsync, mkdirRetryAsync, sleep, takeRetryCount } from "./retry.mjs";
 import { validateScene, loadScene, sceneFps } from "../scene/validate.mjs";
+import { writeWatchState, writeWatchFrame } from "./watch-state.mjs";
 import { compileScene } from "./compile.mjs";
 import { visualKey, loadMapContext } from "./framekey.mjs";
 import { writeReport, baseReport } from "./report.mjs";
@@ -151,7 +152,7 @@ async function encodeJpegsWithRetry(jpegs, outFile, opts) {
  * Render one scene. Throws an object {stage, code, exit, frame, message}.
  * On success returns {outDir, video, frameHashes, report}.
  */
-export async function renderScene({ scenePath, profileName, outDir, frames = null, order = null, keepFrames = false, crfOverride = null, overrides = [] }) {
+export async function renderScene({ scenePath, profileName, outDir, frames = null, order = null, keepFrames = false, crfOverride = null, overrides = [], watch = false }) {
   // No wall-clock time anywhere in this file: prompt 01 bans Date in src/,
   // and render-report.json must be byte-identical across runs. elapsed_s
   // stays 0 (the baseReport default); wall time, if anyone needs it, goes
@@ -322,6 +323,18 @@ export async function renderScene({ scenePath, profileName, outDir, frames = nul
       });
       return png;
     };
+    // Watch preview (optional, off by default): the preview server
+    // reads latest.png and watch.json from the output directory, so
+    // each captured frame is published as it lands. Writes are best
+    // effort and never fail the render. Updates run through one
+    // chain so two workers never write the frame and the state out
+    // of step. The video bytes, frame hashes, and report are
+    // untouched by the preview files.
+    let watchChain = Promise.resolve();
+    let watchCaptured = 0;
+    if (watch) {
+      writeWatchState(outDir, { status: "rendering", frame: 0, frames_total: frameList.length, frames_captured: 0 });
+    }
     const slots = new Array(frameList.length);
     // Dedup promise map: the first worker to reach a key starts its
     // capture; any other worker with the same key awaits that same
@@ -344,12 +357,23 @@ export async function renderScene({ scenePath, profileName, outDir, frames = nul
         const f = frameList[idx];
         const png = await getFramePng(w, idx);
         slots[idx] = png;
+        if (watch) {
+          watchCaptured += 1;
+          const captured = watchCaptured;
+          watchChain = watchChain.then(() => writeWatchFrame(outDir, png, {
+            status: "rendering", frame: f, frames_total: frameList.length, frames_captured: captured,
+          })).catch(() => {});
+        }
         if (keepFrames) {
           await mkdirRetryAsync(resolve(outDir, "frames"), { recursive: true });
           await writeFileRetryAsync(resolve(outDir, "frames", `${String(f).padStart(6, "0")}.png`), png);
         }
       }
     }));
+    // Let the last preview publish land before encoding starts,
+    // so the done state written after the render cannot be
+    // overwritten by a stale rendering update.
+    await watchChain;
     for (let idx = 0; idx < frameList.length; idx++) {
       const f = frameList[idx];
       const png = slots[idx];

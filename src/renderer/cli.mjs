@@ -1,5 +1,5 @@
 // CLI: node src/renderer/cli.mjs render <scene.json> --profile previs|draft|final
-//   --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism]
+//   --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism] [--watch]
 // Exit codes: 0 ok, 2 scene/font/asset, 3 browser, 4 seek/capture/module,
 // 5 encode/probe, 6 nondeterminism.
 import { createHash } from "node:crypto";
@@ -7,13 +7,14 @@ import { readFileSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { renderWithReport, renderRealtime } from "./render.mjs";
+import { writeWatchState } from "./watch-state.mjs";
 import { writeFileRetry, mkdirRetry } from "./retry.mjs";
 import profiles from "../scene/profiles.json" with { type: "json" };
 
 const sha256File = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 
 function parseArgs(argv) {
-  const out = { frames: null, order: null, keepFrames: false, verifyDeterminism: false, realtime: false, sets: [] };
+  const out = { frames: null, order: null, keepFrames: false, verifyDeterminism: false, realtime: false, watch: false, sets: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--profile") out.profile = argv[++i];
@@ -26,6 +27,7 @@ function parseArgs(argv) {
     } else if (a === "--order") out.order = argv[++i].split(",").map(Number);
     else if (a === "--keep-frames") out.keepFrames = true;
     else if (a === "--verify-determinism") out.verifyDeterminism = true;
+    else if (a === "--watch") out.watch = true;
     else if (!out.scene) out.scene = a;
   }
   return out;
@@ -130,7 +132,7 @@ function writeReportMd(outDir, { profile, scenePath, wallS, overrides, status, v
 
 async function main(argv) {
   if (argv[0] !== "render" || !argv[1]) {
-    console.error("usage: node src/renderer/cli.mjs render <scene.json> --profile previs|draft|final|final-max|preview-rt [--realtime] --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism]");
+    console.error("usage: node src/renderer/cli.mjs render <scene.json> --profile previs|draft|final|final-max|preview-rt [--realtime] --out out/<name> [--frames a:b] [--order f,f,f] [--keep-frames] [--verify-determinism] [--watch]");
     console.error("  --realtime is shorthand for --profile preview-rt: a NON-DETERMINISTIC real-time preview (preview-rt.mp4), never for final or verification.");
     return 2;
   }
@@ -202,7 +204,18 @@ async function main(argv) {
   }
   const videoFile = isRealtime ? "preview-rt.mp4" : "video.mp4";
   const renderFn = isRealtime ? renderRealtime : undefined;
-  const { r, wallS } = await timed(() => renderWithReport({ scenePath, profileName: opts.profile, outDir: resolve(opts.out), frames: opts.frames, order: opts.order, keepFrames: opts.keepFrames, crfOverride, overrides }, renderFn));
+  const { r, wallS } = await timed(() => renderWithReport({ scenePath, profileName: opts.profile, outDir: resolve(opts.out), frames: opts.frames, order: opts.order, keepFrames: opts.keepFrames, crfOverride, overrides, watch: opts.watch }, renderFn));
+  // Watch preview: publish the final state so the page swaps from
+  // the latest frame to the finished video (or names the failure).
+  // The determinism path above ignores --watch: two runs share one
+  // preview, so the hme door rejects that combination instead.
+  if (opts.watch && !opts.verifyDeterminism) {
+    const captured = r.result?.report?.frames_captured ?? r.report?.frames_captured ?? 0;
+    writeWatchState(resolve(opts.out), {
+      status: r.exit === 0 ? "done" : "failed",
+      frame: captured, frames_total: null, frames_captured: captured,
+    });
+  }
   writeReportMd(resolve(opts.out), { profile: opts.profile, scenePath, wallS, overrides, status: r.exit === 0 ? "ok" : "failed", videoSha: r.exit === 0 ? sha256File(resolve(opts.out, videoFile)) : null, videoFile, mode: isRealtime ? "realtime-preview (NON-DETERMINISTIC)" : "deterministic" });
   if (r.exit !== 0) {
     rmSync(resolve(opts.out, videoFile), { force: true });

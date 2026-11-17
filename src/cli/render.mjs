@@ -19,11 +19,13 @@
 // exists with at least one frame captured. The renderer exit codes
 // are carried in the report: 2 scene, font, or asset; 3 browser;
 // 4 seek, capture, or module; 5 encode or probe; 6 nondeterminism.
-import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { resolve, dirname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeInsightReport } from "./hme.mjs";
+import { startWatchServer } from "./watch.mjs";
+import { writeWatchState } from "../renderer/watch-state.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "..", "..");
@@ -42,7 +44,7 @@ export const RENDERER_EXIT_MEANING = {
 export const USAGE = [
   "hme render: Render a scene to video.",
   "",
-  "Usage: hme render scene.json --profile previs|draft|final|final-max|preview-rt [--render-out dir] [--out report.json] [--frames a:b] [--keep-frames] [--verify-determinism]",
+  "Usage: hme render scene.json --profile previs|draft|final|final-max|preview-rt [--render-out dir] [--out report.json] [--frames a:b] [--keep-frames] [--verify-determinism] [--watch [--port n]]",
   "",
   "Arguments:",
   "  scene.json  Path to the scene file.",
@@ -57,6 +59,8 @@ export const USAGE = [
   "  --keep-frames  Keep the rendered frame images.",
   "  --verify-determinism  Render twice and fail if any frame differs.",
   "  --realtime  Shorthand for --profile preview-rt, a non-deterministic preview.",
+  "  --watch  Start a local preview page (localhost only) that shows the latest frame while the render runs, then the finished video. Headless stays the default without it.",
+  "  --port n  Port for --watch. Default 0, the OS picks a free port.",
   "",
   "Exit codes: 0 ok or PASS, 1 FAIL, 2 usage error.",
 ].join("\n") + "\n";
@@ -121,6 +125,7 @@ export function buildRenderReport(run, sceneArg, profile, outPath) {
       frames_captured: framesCaptured,
       frames_requested: run.framesRequested,
       determinism_verified: run.verifyDeterminism ? (run.exit === 0) : null,
+      watch_url: run.watchUrl ?? null,
       renderer_exit: run.exit,
       renderer_code: renderer?.code ?? null,
       renderer_stage: renderer?.stage ?? null,
@@ -155,12 +160,110 @@ export function buildRenderReport(run, sceneArg, profile, outPath) {
   };
 }
 
+// Read the renderer report and video after the renderer child
+// exits, then write the one insight report. Shared by the sync
+// path and the --watch path. Returns the process exit code.
+function finishRender({ exit, stdout, stderr, renderOutAbs, videoFile, framesRequested, verifyDeterminism, sceneArg, profile, outPath, watchUrl = null }) {
+  // With --verify-determinism the renderer writes run-a and run-b
+  // under the output directory. The report and video live in run-a.
+  const reportDir = verifyDeterminism ? join(renderOutAbs, "run-a") : renderOutAbs;
+  let renderReport = null;
+  const reportPath = join(reportDir, "render-report.json");
+  if (existsSync(reportPath)) {
+    try {
+      renderReport = JSON.parse(readFileSync(reportPath, "utf8"));
+    } catch (err) {
+      console.error(`hme render: render report unreadable: ${err.message}`);
+    }
+  }
+  let videoBytes = null;
+  const videoInReportDir = join(reportDir, videoFile);
+  if (existsSync(videoInReportDir)) {
+    try {
+      videoBytes = statSync(videoInReportDir).size;
+    } catch {
+      videoBytes = null;
+    }
+  }
+  const report = buildRenderReport({
+    exit,
+    stdout: stdout || "",
+    stderr: stderr || "",
+    renderReport,
+    renderReportPath: renderReport ? reportPath : null,
+    videoPath: videoInReportDir,
+    videoBytes,
+    framesRequested,
+    verifyDeterminism,
+    renderOut: renderOutAbs,
+    watchUrl,
+  }, sceneArg, profile, outPath);
+  return writeInsightReport(report, outPath);
+}
+
+// Run the renderer as a child process while the preview server
+// runs. Returns the process exit code. After the render, the
+// server stays up until Ctrl-C, so the page can be looked at.
+async function runWatchRender({ childArgs, renderOutAbs, videoFile, framesRequested, sceneArg, profile, outPath, port }) {
+  let server;
+  try {
+    server = await startWatchServer({ renderOut: renderOutAbs, videoFile, scene: sceneArg, profile, port });
+  } catch (err) {
+    console.error(`hme render: could not start the watch server: ${err.message}`);
+    return 2;
+  }
+  console.error(`Watch: ${server.url}`);
+  console.error("Headless render with a live preview. The page shows the latest frame, then the finished video.");
+  const child = spawn(process.execPath, [RENDER_CLI, ...childArgs, "--watch"], { encoding: "utf8" });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.on("data", (d) => { stdout += d; });
+  child.stderr.on("data", (d) => { stderr += d; });
+  const exit = await new Promise((resolvePromise) => {
+    child.on("error", () => resolvePromise(2));
+    child.on("close", (code) => resolvePromise(code ?? 2));
+  });
+  if (stdout) process.stderr.write(stdout);
+  if (stderr) process.stderr.write(stderr);
+  const videoExists = existsSync(join(renderOutAbs, videoFile));
+  // The renderer CLI already wrote the done state with the real
+  // frame count. Only name a failure here, for the cases where it
+  // never got far enough to write one itself.
+  if (!(exit === 0 && videoExists)) {
+    try {
+      mkdirSync(renderOutAbs, { recursive: true });
+    } catch {
+      // Best effort only: the report below still names the failure.
+    }
+    writeWatchState(renderOutAbs, {
+      status: "failed", frame: 0, frames_total: null, frames_captured: 0,
+    });
+  }
+  const code = finishRender({
+    exit, stdout, stderr, renderOutAbs, videoFile, framesRequested,
+    verifyDeterminism: false, sceneArg, profile, outPath, watchUrl: server.url,
+  });
+  console.error(exit === 0 && videoExists ? "Render done." : "Render failed.");
+  console.error(`Watch is still up at ${server.url} Press Ctrl-C to stop.`);
+  await new Promise((resolvePromise) => {
+    process.once("SIGINT", resolvePromise);
+    process.once("SIGTERM", resolvePromise);
+  });
+  await server.close();
+  return code;
+}
+
 // Run `hme render <scene.json> --profile <name> [--render-out <dir>]
 // [--out <report.json>] [--frames a:b] [--order f,f,f] [--set p=v]
-// [--keep-frames] [--verify-determinism] [--realtime]`.
+// [--keep-frames] [--verify-determinism] [--realtime]
+// [--watch [--port n]]`.
 // Returns the process exit code: 0 PASS, 1 FAIL, 2 usage or run
-// error. Never prints a stack trace.
-export function runRender(argv) {
+// error. Never prints a stack trace. Async: with --watch the
+// renderer runs as a child process while the preview server runs,
+// and the command waits for Ctrl-C after the render so the page
+// stays up to look at. Without --watch it runs the renderer
+// synchronously, exactly as before.
+export async function runRender(argv) {
   const positionals = [];
   let profile = null;
   let renderOut = null;
@@ -171,6 +274,8 @@ export function runRender(argv) {
   let keepFrames = false;
   let verifyDeterminism = false;
   let realtime = false;
+  let watch = false;
+  let portText = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--profile") {
@@ -221,6 +326,17 @@ export function runRender(argv) {
       verifyDeterminism = true;
     } else if (a === "--realtime") {
       realtime = true;
+    } else if (a === "--watch") {
+      watch = true;
+    } else if (a === "--port") {
+      if (i + 1 >= argv.length) {
+        console.error("hme render: --port needs a port number");
+        console.error(USAGE);
+        return 2;
+      }
+      portText = argv[++i];
+    } else if (a.startsWith("--port=")) {
+      portText = a.slice("--port=".length);
     } else if (a.startsWith("--")) {
       console.error(`hme render: unknown option "${a}"`);
       console.error(USAGE);
@@ -247,6 +363,30 @@ export function runRender(argv) {
   }
   if (verifyDeterminism && profile === "preview-rt") {
     console.error("hme render: preview-rt is non-deterministic; --verify-determinism does not apply");
+    console.error(USAGE);
+    return 2;
+  }
+  let port = 0;
+  if (portText !== null) {
+    port = Number(portText);
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+      console.error(`hme render: --port needs a whole number from 0 to 65535, got "${portText}"`);
+      console.error(USAGE);
+      return 2;
+    }
+  }
+  if (!watch && portText !== null) {
+    console.error("hme render: --port needs --watch");
+    console.error(USAGE);
+    return 2;
+  }
+  if (watch && verifyDeterminism) {
+    console.error("hme render: --watch does not apply with --verify-determinism (two runs share one preview)");
+    console.error(USAGE);
+    return 2;
+  }
+  if (watch && profile === "preview-rt") {
+    console.error("hme render: --watch does not apply with preview-rt (it plays in real time already)");
     console.error(USAGE);
     return 2;
   }
@@ -280,6 +420,12 @@ export function runRender(argv) {
   for (const s of sets) childArgs.push("--set", s);
   if (keepFrames) childArgs.push("--keep-frames");
   if (verifyDeterminism) childArgs.push("--verify-determinism");
+  if (watch) {
+    return runWatchRender({
+      childArgs, renderOutAbs, videoFile, framesRequested,
+      sceneArg, profile, outPath, port,
+    });
+  }
   let child;
   try {
     child = spawnSync(process.execPath, [RENDER_CLI, ...childArgs], { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
@@ -293,38 +439,16 @@ export function runRender(argv) {
   }
   const exit = child.status ?? 2;
   if (child.stdout) process.stderr.write(child.stdout);
-  // With --verify-determinism the renderer writes run-a and run-b
-  // under the output directory. The report and video live in run-a.
-  const reportDir = verifyDeterminism ? join(renderOutAbs, "run-a") : renderOutAbs;
-  let renderReport = null;
-  const reportPath = join(reportDir, "render-report.json");
-  if (existsSync(reportPath)) {
-    try {
-      renderReport = JSON.parse(readFileSync(reportPath, "utf8"));
-    } catch (err) {
-      console.error(`hme render: render report unreadable: ${err.message}`);
-    }
-  }
-  let videoBytes = null;
-  const videoInReportDir = join(reportDir, videoFile);
-  if (existsSync(videoInReportDir)) {
-    try {
-      videoBytes = statSync(videoInReportDir).size;
-    } catch {
-      videoBytes = null;
-    }
-  }
-  const report = buildRenderReport({
+  return finishRender({
     exit,
     stdout: child.stdout || "",
     stderr: child.stderr || "",
-    renderReport,
-    renderReportPath: renderReport ? reportPath : null,
-    videoPath: videoInReportDir,
-    videoBytes,
+    renderOutAbs,
+    videoFile,
     framesRequested,
     verifyDeterminism,
-    renderOut: renderOutAbs,
-  }, sceneArg, profile, outPath);
-  return writeInsightReport(report, outPath);
+    sceneArg,
+    profile,
+    outPath,
+  });
 }
