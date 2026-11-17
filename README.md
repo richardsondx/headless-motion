@@ -259,6 +259,7 @@ Each tool is a file or command an agent calls. Status is what the last independe
 | Map module | `src/map/` | Draws real Natural Earth geography | In use |
 | Chart and text module | `src/scene/` | Bars, lines, and kinetic type | In use |
 | CLI | `src/cli/hme.mjs` | One command surface for render, check, compare, and player pass | In use |
+| Export | `src/cli/export.mjs` | Writes a scene or a video as an EffectCraft `.ecproj` file, plus a loss report | Built |
 | Player pass | `run-player-pass.py` | Screenshots our video the same way as the reference, so the check compares like with like | In use |
 
 ### Measurement tools
@@ -299,6 +300,18 @@ Status is from November 9, 2026.
 | Gradients and glow | Gradient fills, glow, and soft edges | 50%, proof passes within the colour bar |
 | Particle system | Seeded particles that render byte-identical | Built, final verification pending |
 | Automated fixing | Applies a report's correction to a new scene version, never in place | 60%, five fixer functions done |
+
+### Export to EffectCraft
+
+`hme export` writes a scene as an EffectCraft `.ecproj` file, so you can open it in EffectCraft and keep editing there.
+
+```text
+node src/cli/hme.mjs export <scene.json> --to ecproj --out <file.ecproj>
+```
+
+- It also takes a video: `hme export <video.mp4> --to ecproj --out <file.ecproj>`. Frames go to a folder next to the file.
+- Every scene prop with no EffectCraft match gets a loss entry in the report, codes L1 to L20. Nothing is lost in silence. Camera zoom and glow have no match today.
+- Status: built. The export works. One check (P9) is still open.
 
 ## Speed
 
