@@ -266,23 +266,29 @@ Each tool is a file or command an agent calls. Status is what the last independe
 
 Every measurement returns the same shape: a verdict, the numbers, a correction in scene terms, the next command, and its limits.
 
-| Tool | Command | What it measures | Status |
-| --- | --- | --- | --- |
-| Compare | `hme compare` | SSIM, PSNR, LPIPS, flat colour | In use |
-| Diagnose | `hme diagnose` | Names the error and the fix from a frame pair | In use |
-| Trace | `hme trace` | Palette, labels, trajectories, cuts | In use |
-| Frame style | `hme frame-style` | Pace per frame plus a plain-language style prompt | Built, test passing |
-| Control | `hme control` | The ceiling a perfect clone can reach | In use |
-| Extract | `hme extract` | Cuts a pixel region out of a reference frame | In use |
-| Fonts | `hme fonts` | Ranks free fonts by glyph shape against a reference label | In use |
-| Zoom velocity | `hme zoom-velocity` | Zoom speed per second, and where the curve bends | Done, judge confirmed |
-| Contour | `hme contour` | Outline difference, Hausdorff and Chamfer distance | Done, judge confirmed |
-| Blur and grain | `hme blur-grain` | Blur and grain ratios, reference vs ours | Built, judge not yet run |
-| Vignette | `hme vignette` | Corner darkness, matched mean ratio | Done, judge confirmed |
-| Colour and halo | `hme colour` | Colour histograms and halo falloff | Done, judge confirmed |
-| Layering | `hme layering` | Z-order and pixel counts per layer | Done, judge confirmed |
-| Type | `hme type` | Font match, glyph shape, spacing, weight | Judge confirmed |
-| Timing | `hme timing` | Timing offset per object, median and warp table | Built, judge not yet done |
+| Tool | Command | What it tells you |
+| --- | --- | --- |
+| Compare | `hme compare` | How close your video is to the reference, frame by frame |
+| Diagnose | `hme diagnose` | What is wrong in one frame pair, and how to fix it |
+| Trace | `hme trace` | Palette, labels, paths, and cuts in a video |
+| Frame style | `hme frame-style` | Pace per frame, plus a plain-language style prompt |
+| Control | `hme control` | The best score a perfect clone can reach |
+| Extract | `hme extract` | Cuts one pixel region out of a reference frame |
+| Fonts | `hme fonts` | Which free font best matches a reference label |
+| Zoom velocity | `hme zoom-velocity` | Zoom speed per second, and where the curve bends |
+| Contour | `hme contour` | How far one outline sits from another |
+| Blur and grain | `hme blur-grain` | Blur and grain over time, reference vs yours |
+| Vignette | `hme vignette` | How dark the corners are |
+| Colour and halo | `hme colour` | Colour balance, and how light falls off around a shape |
+| Layering | `hme layering` | Which layer sits on top, and how much of each layer shows |
+| Type | `hme type` | Font match, letter shape, spacing, and weight |
+| Timing | `hme timing` | How early or late one object is, and how that offset changes over time |
+
+### Limits
+
+- These tools were checked on one 8-second segment, Seg4, reference vs our render. They are not proven on other videos yet.
+- Blur and grain: the frozen-grain test rests on that one pair. The blur baseline is specific to that segment.
+- Timing: the tool itself reproduces its numbers, but one shared test-suite check still fails. The `tests/renderer` run in `npm test` does not finish cleanly, and the old "98 tests" count is stale. That fix is queued.
 
 Two facts to know before trusting a number:
 
