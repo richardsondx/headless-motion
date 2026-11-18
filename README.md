@@ -4,16 +4,11 @@
 
 # Headless Motion
 
-<table>
-<tr>
-<td>
-
 Headless Motion lets an AI agent make motion graphics in code, with no timeline or editor.
 
-</td>
-<td><img src="assets/brand/map-canada.gif" alt="Camera flight over Canada, rendered by Headless Motion"></td>
-</tr>
-</table>
+<video src="docs/demo/demo-video-1080p.mp4" width="1280" controls poster="assets/brand/hero.png">
+  <a href="docs/demo/demo-video-1080p.mp4">Watch the demo video (72 s, 1920x1080, 24 fps)</a>
+</video>
 
 - **What it is:** a toolkit. A scene is a JSON file, a render is one command, a check is numbers.
 - **Who it is for:** AI agents that do the work, and the human who gives one final look.
@@ -291,7 +286,7 @@ A clone passes only if it meets every number in its segment's bar. The bar is fr
 | Search Party map | 0.96 | 35 dB | 0.08 | under 3 Delta E |
 
 - **Example fail:** the TED-Ed baseline scored SSIM 0.686 against its 0.95 bar.
-- **Determinism:** two runs of the same profile give a byte-identical video.
+- **Determinism:** two runs of the same profile give the same picture, within encoder noise too small to see.
 - **Measured scores:** [BENCHMARKS.md](BENCHMARKS.md).
 
 ## Speed
