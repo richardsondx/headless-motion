@@ -1,0 +1,69 @@
+{
+  "verdict": {
+    "status": "FAIL",
+    "failed_bars": [
+      "Palette Adherence",
+      "Flat Fill Integrity",
+      "Outline Contract",
+      "Luminance Balance"
+    ],
+    "detail": "4 of 5 bars failed: Palette Adherence, Flat Fill Integrity, Outline Contract, Luminance Balance."
+  },
+  "bars": [
+    {
+      "bar": "Palette Adherence",
+      "status": "FAIL",
+      "measured": "1 of 1 top colours within 36 RGB points of the reference palette",
+      "bound": "At least 6 of 1 top colours within 36 RGB points",
+      "detail": "Gate palette: #040404. Reference palette: #141414, #4C4C4C, #DCDCD4, #CCCCCC, #1C1C1C, #444444, #C4C4C4, #E4E4DC."
+    },
+    {
+      "bar": "Flat Fill Integrity",
+      "status": "FAIL",
+      "measured": "flat-fill ratio 1",
+      "bound": "Within 0.15 of the reference 0.8387",
+      "detail": "Difference is 0.1613."
+    },
+    {
+      "bar": "Outline Contract",
+      "status": "FAIL",
+      "measured": "outline density 0",
+      "bound": "Between 0.25x and 4x the reference 0.012",
+      "detail": "Ratio is 0."
+    },
+    {
+      "bar": "Grain Floor",
+      "status": "PASS",
+      "measured": "grain 0",
+      "bound": "At or under 14.821 (reference 9.547 x 1.5 + 0.5)",
+      "detail": "Generated art must not be grainier than the flat reference."
+    },
+    {
+      "bar": "Luminance Balance",
+      "status": "FAIL",
+      "measured": "mean luma 0",
+      "bound": "Within 30 of the reference 114.99",
+      "detail": "Difference is 114.99."
+    }
+  ],
+  "fixes": [
+    "[FIX-1] Use only these colours: #141414, #4C4C4C, #DCDCD4, #CCCCCC, #1C1C1C, #444444, #C4C4C4, #E4E4DC. Remove every colour outside that list.",
+    "[FIX-2] Fill every shape with one solid colour. The reference flat-fill ratio is 0.8387 and this image is 1. Remove shading and texture inside shapes.",
+    "[FIX-3] Set dark outline density to 0.012. This image is 0. Add dark outlines at the reference density.",
+    "[FIX-5] Shift overall brightness toward 114.99. This image is 0. Brighten the image."
+  ],
+  "image": "/tmp/black.png",
+  "reference": "study/frame-style-v2-proof/hu37-4s5-report.json",
+  "measured": {
+    "palette": [
+      {
+        "hex": "#040404",
+        "share": 1
+      }
+    ],
+    "flat_fill_ratio": 1,
+    "outline_density": 0,
+    "grain_mean_abs_laplacian": 0,
+    "mean_luma": 0
+  }
+}

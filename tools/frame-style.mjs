@@ -20,6 +20,7 @@ const HME = join(HERE, "..", "src", "cli", "hme.mjs");
 
 if (process.argv.length <= 2 || process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log("Usage: node tools/frame-style.mjs <video.mp4> --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]");
+  console.log("   or: node tools/frame-style.mjs --gate-image <image.png> --reference <report.json> [--gate-out <gate.json>]");
   console.log("Runs: node src/cli/hme.mjs frame-style <same arguments>");
   console.log("See `node src/cli/hme.mjs frame-style --help` for the full option list.");
   process.exit(process.argv.length <= 2 ? 2 : 0);

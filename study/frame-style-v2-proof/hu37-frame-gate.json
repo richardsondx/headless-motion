@@ -1,0 +1,87 @@
+{
+  "verdict": {
+    "status": "PASS",
+    "failed_bars": [],
+    "detail": "All 5 bars passed."
+  },
+  "bars": [
+    {
+      "bar": "Palette Adherence",
+      "status": "PASS",
+      "measured": "8 of 8 top colours within 36 RGB points of the reference palette",
+      "bound": "At least 6 of 8 top colours within 36 RGB points",
+      "detail": "Gate palette: #1C1C1C, #4C4C4C, #DCDCD4, #CCCCCC, #E4E4DC, #444444, #DCDCDC, #C4C4C4. Reference palette: #141414, #4C4C4C, #DCDCD4, #CCCCCC, #1C1C1C, #444444, #C4C4C4, #E4E4DC."
+    },
+    {
+      "bar": "Flat Fill Integrity",
+      "status": "PASS",
+      "measured": "flat-fill ratio 0.8313",
+      "bound": "Within 0.15 of the reference 0.8387",
+      "detail": "Difference is 0.0074."
+    },
+    {
+      "bar": "Outline Contract",
+      "status": "PASS",
+      "measured": "outline density 0.0158",
+      "bound": "Between 0.25x and 4x the reference 0.012",
+      "detail": "Ratio is 1.317."
+    },
+    {
+      "bar": "Grain Floor",
+      "status": "PASS",
+      "measured": "grain 13.84",
+      "bound": "At or under 14.821 (reference 9.547 x 1.5 + 0.5)",
+      "detail": "Generated art must not be grainier than the flat reference."
+    },
+    {
+      "bar": "Luminance Balance",
+      "status": "PASS",
+      "measured": "mean luma 115.01",
+      "bound": "Within 30 of the reference 114.99",
+      "detail": "Difference is 0.02."
+    }
+  ],
+  "fixes": [],
+  "image": "/tmp/short-hu37-frame.png",
+  "reference": "study/frame-style-v2-proof/hu37-4s5-report.json",
+  "measured": {
+    "palette": [
+      {
+        "hex": "#1C1C1C",
+        "share": 0.2576
+      },
+      {
+        "hex": "#4C4C4C",
+        "share": 0.114
+      },
+      {
+        "hex": "#DCDCD4",
+        "share": 0.0777
+      },
+      {
+        "hex": "#CCCCCC",
+        "share": 0.0422
+      },
+      {
+        "hex": "#E4E4DC",
+        "share": 0.0372
+      },
+      {
+        "hex": "#444444",
+        "share": 0.0354
+      },
+      {
+        "hex": "#DCDCDC",
+        "share": 0.0301
+      },
+      {
+        "hex": "#C4C4C4",
+        "share": 0.0283
+      }
+    ],
+    "flat_fill_ratio": 0.8313,
+    "outline_density": 0.0158,
+    "grain_mean_abs_laplacian": 13.84,
+    "mean_luma": 115.01
+  }
+}

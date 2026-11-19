@@ -298,6 +298,32 @@ export function compileScene(scene, sceneDir) {
       errors.push({ code: "ASSET_MISSING", path: `/nodes/${node.id}/props/src`, message: `image file not found: ${node.props.src}` });
     }
   }
+  // Props.src timeline values: embed each one as a data URI in
+  // window.__hmeSrcMap, so the runtime can swap between local files
+  // per frame. The static src is already embedded in the <img>, so
+  // only timeline values go in the map. A missing timeline file is
+  // ASSET_MISSING, like a missing static src. No props.src track
+  // means no map and no extra script, so other scenes compile as
+  // before. External URLs map to themselves.
+  let srcMap = null;
+  const srcValues = new Set();
+  for (const t of scene.timeline || []) {
+    if (t.prop !== "props.src") continue;
+    for (const k of t.keys || []) if (typeof k.v === "string") srcValues.add(k.v);
+  }
+  if (srcValues.size) {
+    srcMap = {};
+    for (const v of srcValues) {
+      const a = resolveAsset(sceneDir, v);
+      if (a.external) {
+        srcMap[v] = v;
+      } else if (!existsSync(a.path)) {
+        errors.push({ code: "ASSET_MISSING", path: `/timeline/props.src`, message: `image file not found: ${v}` });
+      } else {
+        srcMap[v] = dataUri(a.path);
+      }
+    }
+  }
   // Text and chart nodes: bundle the pure modules plus the in-page
   // runtimes. The runtimes run after the renderer runtime, so they can
   // register waiters on window.__hme.
@@ -389,7 +415,8 @@ export function compileScene(scene, sceneDir) {
   const testHang = process.env.HME_TEST_HANG_WAITER === "1" ? "window.__hmeTestHangWaiter=true;" : "";
   const mapRuntime = mapData ? readFileSync(resolve(HERE, "..", "map", "runtime.mjs"), "utf8") : "";
   const mapScript = mapData ? `<script>window.__hmeMapData=${JSON.stringify(mapData)};</script>` : "";
-  const html = `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:1920px;height:1080px;overflow:hidden;background:${bg}}#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:${bg}}${fontCss}</style></head><body><div id="stage">${scene.nodes.map((n) => nodeHtml(n, sceneDir, scene.palette)).join("")}</div><script>${gsap}</script><script>window.__hmeScene=${JSON.stringify(scene)};${testHang}</script>${mapScript}<script type="module">${evaluatorBundle()}\n${mapBundle}\n${textChartBundle}\n${particleBundle ? particleBundle + "\n" : ""}${runtime}\n${mapRuntime}\n${textRuntime}\n${chartRuntime}${particleRuntime ? "\n" + particleRuntime : ""}</script></body></html>`;
+  const srcScript = srcMap ? `<script>window.__hmeSrcMap=${JSON.stringify(srcMap)};</script>` : "";
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:1920px;height:1080px;overflow:hidden;background:${bg}}#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:${bg}}${fontCss}</style></head><body><div id="stage">${scene.nodes.map((n) => nodeHtml(n, sceneDir, scene.palette)).join("")}</div><script>${gsap}</script><script>window.__hmeScene=${JSON.stringify(scene)};${testHang}</script>${mapScript}${srcScript}<script type="module">${evaluatorBundle()}\n${mapBundle}\n${textChartBundle}\n${particleBundle ? particleBundle + "\n" : ""}${runtime}\n${mapRuntime}\n${textRuntime}\n${chartRuntime}${particleRuntime ? "\n" + particleRuntime : ""}</script></body></html>`;
   return { html, errors, mapCache: mapData ? mapData.mapCache : false };
 }
 
@@ -418,4 +445,148 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       }
     }
   }
+}
+
+// ---------------------------------------------------------------------
+// V5 Hybrid (law 6): true 3-pass silhouette union compiler.
+// Appended 2026-11-19, U3. compileScene above is unchanged.
+//
+// Pass 1: outer keyline union. Every connected body primitive with
+//   fill none, stroke actorOutline, strokeWidth = lineWeight * 2.05,
+//   round joins and caps. Audit mode adds a stroke-free fill pass of
+//   the same shapes: the true unbroken silhouette.
+// Pass 2: seamless depth-sorted fills plus clipped cel light, stroke
+//   none, strict Z-order (PASS2_RANK). Behind-skull ears and
+//   behind-belly standing hips are enforced by rank, not by trust:
+//   a standing leg may never sort after the torso, an ear may never
+//   sort after the skull.
+// Pass 3: selective open creases and appeal only: toe creases, chin
+//   tuck, belly hint, eye patches, brows, eyes, nose, mouth, blush,
+//   fur ticks. Region-matched coloured keylines, never flat #000.
+// ---------------------------------------------------------------------
+
+/** Strict Pass 2 Z-order, lowest (furthest back) first. */
+export const PASS2_RANK = Object.freeze({
+  tail: 0,
+  backLeg: 1,
+  frontLegStanding: 2,
+  backArm: 3,
+  torso: 4,
+  belly: 5,
+  frontLegSeated: 6,
+  prop: 7,
+  frontArm: 8,
+  farEar: 9,
+  nearEar: 10,
+  skull: 11,
+  snout: 12,
+  face: 13,
+});
+
+/**
+ * Sort Pass 2 layers into the strict Z-order. Unknown slots throw:
+ * a layer with no rank is a layer whose depth is a guess, and a
+ * guess is how an ear ends up on top of a forehead (V4 lesson).
+ * Stable: layers sharing a slot keep their input order.
+ */
+export function sortPass2Layers(layers) {
+  if (!Array.isArray(layers)) throw new Error("UNION: pass2 layers must be an array");
+  for (const l of layers) {
+    if (!(l.slot in PASS2_RANK)) {
+      throw new Error(`UNION: unknown pass2 slot "${l.slot}"; known: ${Object.keys(PASS2_RANK).join(", ")}`);
+    }
+  }
+  return [...layers]
+    .map((l, i) => ({ l, i }))
+    .sort((a, b) => PASS2_RANK[a.l.slot] - PASS2_RANK[b.l.slot] || a.i - b.i)
+    .map(({ l }) => l);
+}
+
+/**
+ * Compile one V5 actor into a 3-pass SVG.
+ *
+ * @param {object} actor
+ * @param {string} actor.id actor id, used in element ids
+ * @param {string} actor.viewBox SVG viewBox, e.g. "0 0 400 480"
+ * @param {number} actor.width SVG width px
+ * @param {number} actor.height SVG height px
+ * @param {number} [actor.lineWeight=9] outline weight px (M68-M71: 8-11)
+ * @param {string} [actor.outline="#000b39"] keyline colour (M81)
+ * @param {string[]} actor.pass1Shapes path d strings for the outer keyline union
+ * @param {Array<{slot:string,d:string,fill:string,clip?:string}>} actor.pass2Layers depth-sorted fills
+ * @param {string} [actor.torsoClipD] torso outline d, for the belly/garment clipPath
+ * @param {Array<{d:string,stroke?:string,width?:number}>} [actor.pass3Creases] open creases
+ * @param {string} [actor.faceSvg] face-mark fragments (eyes, nose, mouth, whiskers)
+ * @param {string} [actor.background="#ffffff"]
+ * @returns {{svg:string, pass1Svg:string, silhouetteSvg:string, pass1StrokeWidth:number, order:string[]}}
+ *   svg is the full 3-pass render. pass1Svg is the Pass 1 keyline
+ *   alone. silhouetteSvg is the audit fill pass: every Pass 1 shape
+ *   filled solid with no stroke, the true unbroken silhouette the
+ *   seam-leak gate inspects.
+ */
+export function compileSilhouetteUnion(actor) {
+  if (!actor || typeof actor !== "object") throw new Error("UNION: actor must be an object");
+  if (!actor.id) throw new Error("UNION: actor needs an id");
+  if (!Array.isArray(actor.pass1Shapes) || actor.pass1Shapes.length === 0) {
+    throw new Error("UNION: actor needs at least one pass1 shape");
+  }
+  if (!Array.isArray(actor.pass2Layers) || actor.pass2Layers.length === 0) {
+    throw new Error("UNION: actor needs at least one pass2 layer");
+  }
+  const lineWeight = actor.lineWeight ?? 9;
+  if (!(lineWeight >= 8 && lineWeight <= 11)) {
+    throw new Error(`UNION: lineWeight ${lineWeight} outside the spec 8-11 px (M68-M71)`);
+  }
+  const outline = actor.outline ?? "#000b39";
+  const pass1StrokeWidth = Number((lineWeight * 2.05).toFixed(3));
+  const ordered = sortPass2Layers(actor.pass2Layers);
+  const vb = actor.viewBox ?? `0 0 ${actor.width ?? 400} ${actor.height ?? 480}`;
+  const w = actor.width ?? 400;
+  const h = actor.height ?? 480;
+  const bg = actor.background ?? "#ffffff";
+
+  const pass1Paths = actor.pass1Shapes
+    .map((d) => `<path d="${esc(d)}" fill="none" stroke="${esc(outline)}" stroke-width="${pass1StrokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>`)
+    .join("\n");
+  const auditPaths = actor.pass1Shapes
+    .map((d) => `<path d="${esc(d)}" fill="#000000" stroke="none"/>`)
+    .join("\n");
+
+  const clipDef = actor.torsoClipD
+    ? `<defs><clipPath id="${esc(actor.id)}-torso-clip"><path d="${esc(actor.torsoClipD)}"/></clipPath></defs>`
+    : "";
+  const pass2Paths = ordered
+    .map((l) => {
+      const clip = l.clip ? ` clip-path="url(#${esc(actor.id)}-torso-clip)"` : "";
+      return `<path d="${esc(l.d)}" fill="${esc(l.fill)}" stroke="none"${clip}/>`;
+    })
+    .join("\n");
+  const pass3Paths = (actor.pass3Creases ?? [])
+    .map((c) => `<path d="${esc(c.d)}" fill="none" stroke="${esc(c.stroke ?? outline)}" stroke-width="${c.width ?? 2}" stroke-linecap="round"/>`)
+    .join("\n");
+  const face = actor.faceSvg ?? "";
+
+  const pass1Svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${esc(vb)}" width="${w}" height="${h}">` +
+    `<rect width="100%" height="100%" fill="${esc(bg)}"/>` +
+    `<g stroke-linejoin="round" stroke-linecap="round">\n${pass1Paths}\n</g>\n</svg>`;
+  const silhouetteSvg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${esc(vb)}" width="${w}" height="${h}">` +
+    `<rect width="100%" height="100%" fill="${esc(bg)}"/>` +
+    `<g>\n${auditPaths}\n</g>\n</svg>`;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${esc(vb)}" width="${w}" height="${h}">` +
+    `<rect width="100%" height="100%" fill="${esc(bg)}"/>` +
+    `${clipDef}` +
+    `<g id="${esc(actor.id)}-pass1" stroke-linejoin="round" stroke-linecap="round">\n${pass1Paths}\n</g>\n` +
+    `<g id="${esc(actor.id)}-pass2">\n${pass2Paths}\n</g>\n` +
+    `<g id="${esc(actor.id)}-pass3" stroke-linecap="round">\n${pass3Paths}\n${face}\n</g>\n` +
+    `</svg>`;
+  return {
+    svg,
+    pass1Svg,
+    silhouetteSvg,
+    pass1StrokeWidth,
+    order: ordered.map((l) => l.slot),
+  };
 }

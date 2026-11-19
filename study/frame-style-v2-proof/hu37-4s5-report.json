@@ -1,0 +1,254 @@
+{
+  "verdict": {
+    "status": "PASS",
+    "failed_bar": null,
+    "detail": "Measured 135 frames from 0 s to 4.5 s at 30 fps. Changed fraction 0.5597, mean change 0.775 levels per frame, longest static run 6 frames. 0 shot cuts, cadence mixed, flat-fill ratio 0.8387, grain 9.547."
+  },
+  "numbers": {
+    "video": "refs/shorts-2026-11-09/_HU37rX4G1U.mp4",
+    "window_s": [
+      0,
+      4.5
+    ],
+    "fps": 30,
+    "frames": 135,
+    "source_shape": [
+      640,
+      360
+    ],
+    "measure_width": 480,
+    "changed_threshold_mean_abs_diff": 0.5,
+    "shot_cut_threshold_mean_abs_diff": 22,
+    "changed_fraction": 0.5597,
+    "changed_frames": 75,
+    "mean_change_per_frame": 0.775,
+    "mean_change_per_second": 23.249,
+    "longest_static_run_frames": 6,
+    "longest_static_run_s": 0.2,
+    "shot_cuts": [],
+    "shot_cut_count": 0,
+    "cadence": "mixed",
+    "median_gap_between_changes": 1,
+    "camera_vs_subject": {
+      "camera_frames": 10,
+      "subject_frames": 85,
+      "both_frames": 4,
+      "neither_frames": 35,
+      "median_border_mad": 0.126,
+      "median_center_mad": 0.896,
+      "border_center_ratio": 0.141
+    },
+    "palette": [
+      {
+        "hex": "#141414",
+        "share": 0.2228
+      },
+      {
+        "hex": "#4C4C4C",
+        "share": 0.0909
+      },
+      {
+        "hex": "#DCDCD4",
+        "share": 0.0785
+      },
+      {
+        "hex": "#CCCCCC",
+        "share": 0.0394
+      },
+      {
+        "hex": "#1C1C1C",
+        "share": 0.033
+      },
+      {
+        "hex": "#444444",
+        "share": 0.0312
+      },
+      {
+        "hex": "#C4C4C4",
+        "share": 0.0257
+      },
+      {
+        "hex": "#E4E4DC",
+        "share": 0.0256
+      }
+    ],
+    "gradient": {
+      "stops": [
+        {
+          "y": 0,
+          "rgb": [
+            72.5,
+            72.5,
+            72.5
+          ]
+        },
+        {
+          "y": 0.25,
+          "rgb": [
+            189.2,
+            191.8,
+            189.1
+          ]
+        },
+        {
+          "y": 0.5,
+          "rgb": [
+            51.5,
+            114.9,
+            194.2
+          ]
+        },
+        {
+          "y": 0.75,
+          "rgb": [
+            219,
+            217.1,
+            212.7
+          ]
+        },
+        {
+          "y": 0.99,
+          "rgb": [
+            23,
+            23,
+            23
+          ]
+        }
+      ],
+      "max_row_step": 142.56,
+      "mean_row_step": 2.13
+    },
+    "flat_fill_ratio": 0.8387,
+    "outline_density": 0.012,
+    "dark_fraction": 0.3397,
+    "grain_mean_abs_laplacian": 9.547,
+    "mean_luma": 114.99,
+    "per_second": [
+      {
+        "second": 0,
+        "frames": 30,
+        "mean_abs_diff": 0.485,
+        "changed": 10,
+        "shot_cuts": 0,
+        "border_mad": 0.28,
+        "center_mad": 0.934
+      },
+      {
+        "second": 1,
+        "frames": 30,
+        "mean_abs_diff": 0.915,
+        "changed": 25,
+        "shot_cuts": 0,
+        "border_mad": 0.234,
+        "center_mad": 2.47
+      },
+      {
+        "second": 2,
+        "frames": 30,
+        "mean_abs_diff": 1.374,
+        "changed": 24,
+        "shot_cuts": 0,
+        "border_mad": 0.401,
+        "center_mad": 3.01
+      },
+      {
+        "second": 3,
+        "frames": 30,
+        "mean_abs_diff": 0.469,
+        "changed": 11,
+        "shot_cuts": 0,
+        "border_mad": 0.267,
+        "center_mad": 0.756
+      },
+      {
+        "second": 4,
+        "frames": 15,
+        "mean_abs_diff": 0.47,
+        "changed": 5,
+        "shot_cuts": 0,
+        "border_mad": 0.338,
+        "center_mad": 0.606
+      }
+    ],
+    "first_frame": {
+      "top_median_rgb": [
+        59,
+        60,
+        60
+      ],
+      "bottom_median_rgb": [
+        23,
+        23,
+        23
+      ],
+      "gradient_stops": [
+        {
+          "y": 0,
+          "rgb": [
+            62,
+            62,
+            62
+          ]
+        },
+        {
+          "y": 0.25,
+          "rgb": [
+            195.5,
+            198,
+            200
+          ]
+        },
+        {
+          "y": 0.5,
+          "rgb": [
+            0,
+            67.5,
+            157
+          ]
+        },
+        {
+          "y": 0.75,
+          "rgb": [
+            222,
+            219,
+            216
+          ]
+        },
+        {
+          "y": 0.99,
+          "rgb": [
+            23,
+            23,
+            23
+          ]
+        }
+      ]
+    },
+    "prompt_path": "study/frame-style-v2-proof/hu37-4s5-prompt.md",
+    "csv_path": "study/frame-style-v2-proof/hu37-4s5-frames.csv",
+    "method": "ffmpeg extracts every frame in the window at native fps, scaled to 480 px wide. A Python driver (PIL and numpy, engine venv) loads frames one at a time and reports mean absolute grayscale difference against the frame before it, border MAD (outer 12%) and centre MAD (inner 50%), flat-fill ratio, outline density, grain (mean absolute Laplacian), and mean luma. It aggregates the top 8 quantized palette hexes and the mean 5-stop vertical gradient. A frame counts as changed when that difference is over 0.5 levels; a shot cut when it is over 22.0 levels. JavaScript turns the rows into changed fraction, mean change per frame and per second, longest static run, shot cuts, cadence, camera-vs-subject split, and a per-second motion curve. The prompt is built from those numbers only."
+  },
+  "corrections": [],
+  "context": {
+    "thresholds": {
+      "changed_mean_abs_diff": 0.5,
+      "shot_cut_mean_abs_diff": 22,
+      "changed_rule": "A frame counts as changed when its mean absolute grayscale difference against the frame before it is over 0.5 levels. Encoded-video noise sits under 0.5, so a frame over that bar moved for real.",
+      "shot_cut_rule": "A frame counts as a shot cut when its mean absolute grayscale difference against the frame before it is over 22.0 levels. That is a full-scene change, not a moving subject.",
+      "cadence_rule": "static means no frame changed. on-1s means a change on nearly every frame (changed fraction at least 0.85). on-2s means a median gap of 2 frames between changed frames. on-3s means a median gap of 3. hold-and-pop means long static runs of at least 8 frames with a changed fraction under 0.5. Anything else is mixed.",
+      "camera_rule": "A step is camera-led when border MAD is over 0.5 and more than twice centre MAD. It is subject-led when centre MAD is over 0.5 and more than twice border MAD.",
+      "min_frames": 2,
+      "verdict_rule": "PASS when the window yields at least 2 frames, FAIL when it yields fewer. This command measures pace and style; it does not judge whether the pace is good, so a still window passes with a changed fraction of 0. The report carries the palette, flatness, outline, grain, and luminance bounds that --gate-image checks a generated still against."
+    },
+    "control_ceiling": null,
+    "meaning": "Over 135 frames the video changes on 75 steps, a changed fraction of 0.5597. Mean change is 0.775 levels per frame, 23.249 levels per second. The longest static run is 6 frames (0.2 s). There are 0 shot cuts and cadence is mixed. The per-second curve names the motion in each second of the window."
+  },
+  "next": "hme trace video.mp4 --start-s <n> --end-s <n> --out <dir>",
+  "limits": [
+    "The numbers describe this window only. They do not describe the full video.",
+    "Frames are measured at 480 px wide. Small details under that scale are not in these numbers.",
+    "Mean absolute difference sees any pixel move, so a camera move reads as motion even when the subject holds still. The border and centre MADs split the two; read them before trusting the headline pace.",
+    "The palette is quantized to 5 bits per channel, so near colours merge into one hex. The gradient stops are medians across each row, so a wide figure can pull a stop toward the figure colour.",
+    "This command measures pace, palette, flatness, outline, grain, and gradient. It does not measure trajectories or easing; hme trace measures those."
+  ]
+}

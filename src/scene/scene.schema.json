@@ -259,6 +259,23 @@
       "items": {
         "type": "string"
       }
+    },
+    "v5": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Additive, Nov 19 2026 (V5 Hybrid): parametric V5 actors compiled by compileSilhouetteUnion. Optional; the renderer ignores it unless a V5 actor build reads it.",
+      "required": [
+        "actors"
+      ],
+      "properties": {
+        "actors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/v5Actor"
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -1243,6 +1260,160 @@
               "minimum": 0,
               "description": "px, 0 is sharp"
             }
+          }
+        }
+      }
+    },
+    "v5Yaw": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "V5 decoupled yaw channel in [-1, 1]: -1 full turn left, 0 front, +1 full turn right."
+    },
+    "v5FootPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "world-space foot pin x, scene px"
+        },
+        "y": {
+          "type": "number",
+          "description": "world-space foot pin y (foot bottom), scene px"
+        }
+      }
+    },
+    "v5Limb": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "side"
+      ],
+      "properties": {
+        "side": {
+          "enum": [
+            "left",
+            "right"
+          ]
+        },
+        "hipOverlapMode": {
+          "enum": [
+            "behind",
+            "front"
+          ],
+          "default": "behind",
+          "description": "V5 open risk: standing legs tuck behind the lower torso ('behind'). Extreme vertical leg raises (high kicks, deep seated splits) need 'front' per limb."
+        },
+        "footPin": {
+          "$ref": "#/$defs/v5FootPin"
+        },
+        "lift": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 planted, 1 lifted"
+        }
+      }
+    },
+    "v5Garment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "garment kind, e.g. belly, shirt, saddle"
+        },
+        "spineT": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "spine parameter t of the garment centre, in torso Frenet space"
+        },
+        "lateral": {
+          "type": "number",
+          "description": "lateral offset from the spine, px, in torso Frenet space"
+        },
+        "fill": {
+          "$ref": "#/$defs/colorRef"
+        }
+      }
+    },
+    "v5Actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "archetype"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "archetype": {
+          "type": "string",
+          "description": "character archetype, e.g. milo"
+        },
+        "groupMode": {
+          "const": "silhouette-union",
+          "description": "V5 actors always compile through the 3-pass silhouette union."
+        },
+        "headYaw": {
+          "$ref": "#/$defs/v5Yaw"
+        },
+        "torsoYaw": {
+          "$ref": "#/$defs/v5Yaw"
+        },
+        "legYaw": {
+          "$ref": "#/$defs/v5Yaw"
+        },
+        "spineLeanDeg": {
+          "type": "number",
+          "minimum": -30,
+          "maximum": 30
+        },
+        "spineCurveX": {
+          "type": "number",
+          "description": "mid-spine lateral shift, px"
+        },
+        "lookAt": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          },
+          "description": "gaze target, scene px [x, y]"
+        },
+        "feet": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "left": {
+              "$ref": "#/$defs/v5FootPin"
+            },
+            "right": {
+              "$ref": "#/$defs/v5FootPin"
+            }
+          }
+        },
+        "limbs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v5Limb"
+          }
+        },
+        "garments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v5Garment"
           }
         }
       }

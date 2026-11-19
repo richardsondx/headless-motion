@@ -39,6 +39,7 @@ import { runGradient } from "./gradient.mjs";
 import { runComposition } from "./composition.mjs";
 import { runFix } from "./fix.mjs";
 import { runRig } from "./rig.mjs";
+import { runStoryboard } from "./storyboard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = resolve(HERE, "insight-schema.json");
@@ -155,16 +156,19 @@ export const COMMANDS = [
   },
   {
     name: "frame-style",
-    summary: "Measure a video frame by frame and write a plain-language style prompt from the pace numbers.",
-    usage: "hme frame-style video.mp4 --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]",
+    summary: "Measure a video frame by frame and write a plain-language style prompt from the pace and style numbers. v2 also measures shot cuts, cadence, camera-vs-subject motion, palette, gradient, flatness, outline, and grain, and can gate a generated still against a reference report.",
+    usage: "hme frame-style video.mp4 --start-s <n> --end-s <n> --out <prompt.md> [--report <report.json>] [--csv <per-frame.csv>] [--fps <n>]\n       hme frame-style --gate-image <image.png> --reference <report.json> [--gate-out <gate.json>]",
     args: ["video.mp4  Path to the reference video."],
     options: [
       "--start-s <n>  Start time in seconds. Required.",
       "--end-s <n>  End time in seconds. Required, and after --start-s.",
       "--out <file>  Write the style prompt here. Required.",
       "--report <file>  Write the JSON insight report here. Without it, the report goes to stdout.",
-      "--csv <file>  Write one row per frame (frame, time, mean_abs_diff, changed). Without it, no CSV is written.",
+      "--csv <file>  Write one row per frame (frame, time, mean_abs_diff, changed, shot_cut, border_mad, center_mad, mean_luma, flat_fill_ratio, outline_density, grain). Without it, no CSV is written.",
       "--fps <n>  Frames per second to extract at. Default: the video native fps from ffprobe.",
+      "--gate-image <file>  Check one generated still against a v2 reference report instead of measuring a video. Needs --reference.",
+      "--reference <file>  A v2 frame-style report JSON to gate against. Needs --gate-image.",
+      "--gate-out <file>  Write the gate JSON here. Without it, the gate goes to stdout.",
       "Proof: on the 24-frame Headless Motion descent clip (24 fps, 1.0 s, 480p) the tool reads 24 frames, a changed fraction of 0.3478, and a longest static run of 15 frames.",
     ],
     example: "hme frame-style ref.mp4 --start-s 0 --end-s 20 --out out/style-prompt.md --csv out/style-frames.csv",
@@ -453,6 +457,16 @@ export const COMMANDS = [
     example: "hme rig define rig-valid.json",
   },
   {
+    name: "storyboard",
+    summary: "Turn a storyboard spec into scene files and visuals.",
+    usage: "hme storyboard <spec.json> --out <dir>",
+    args: ["<spec.json>  Storyboard spec, schema hme.storyboard/1.0."],
+    options: [
+      "--out <dir>  Directory for the 6 outputs: storyboard.html, sprite-sheet.png, assets.json, moodboard.html, scenes/scene-01.json..., animatic.mp4. Required.",
+    ],
+    example: "hme storyboard storyboard-spec.json --out out/storyboard",
+  },
+  {
     name: "fix",
     summary: "Apply an insight report's corrections to a scene and write a new scene file.",
     usage: "hme fix --report <report.json> --scene <scene.json> --out <new-scene.json> [--report-out <report.json>] [--dry-run]",
@@ -706,6 +720,9 @@ async function main(argv) {
   }
   if (cmd.name === "composition") {
     return runComposition(argv.slice(1));
+  }
+  if (cmd.name === "storyboard") {
+    return runStoryboard(argv.slice(1));
   }
   // The command module does not exist yet (units U3 to U9). Say so plainly.
   console.error(`hme ${cmd.name}: not implemented yet`);
